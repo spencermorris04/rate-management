@@ -91,6 +91,8 @@ interface GroupedData {
   subGroups?: { [key: string]: GroupedData };
 }
 
+const COLUMN_WIDTH = 150; // in pixels
+const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.5;
 
 const sortAreaBuckets = (a: string, b: string) => {
     const getBaseArea = (str: string) => {
@@ -117,10 +119,15 @@ const TableWrapper = styled.div`
   width: 75vw;
   height: 90vh;
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
   &::-webkit-scrollbar {
-    display: none;
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
   }
   border-radius: 20px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
@@ -147,7 +154,7 @@ const FadeRight = styled.div`
   right: 0;
   bottom: 0;
   width: 20px;
-  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  background: linear-gradient(to left, #e6e6e6, transparent);
   pointer-events: none;
 `;
 
@@ -211,7 +218,7 @@ const EffectiveWebRateInput = styled.input`
 const Table = styled.table`
   border-collapse: separate;
   border-spacing: 0;
-  width: 100%;
+  width: max-content;
   font-family: Arial, sans-serif;
   background-color: white;
   border-radius: 8px;
@@ -224,16 +231,37 @@ const SeparatorRow = styled.tr`
   background-color: black;
 `;
 
-const Th = styled.th<{ isSticky?: boolean }>`
+const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean }>`
   background-color: #f2f2f2;
   border: none;
   padding: 12px;
   text-align: left;
+  width: ${COLUMN_WIDTH}px;
+  min-width: ${COLUMN_WIDTH}px;
+  max-width: ${COLUMN_WIDTH}px;
   ${({ isSticky }) => isSticky && `
     position: sticky;
     top: 0;
     z-index: 10;
     background-color: #e6e6e6;
+  `}
+  ${({ isStickyLeft }) => isStickyLeft && `
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    width: ${FIRST_COLUMN_WIDTH}px;
+    min-width: ${FIRST_COLUMN_WIDTH}px;
+    max-width: ${FIRST_COLUMN_WIDTH}px;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -20px;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(to left, transparent, #e6e6e6);
+      pointer-events: none;
+    }
   `}
 `;
 
@@ -241,11 +269,27 @@ const Td = styled.td<{ level?: number; isSticky?: boolean }>`
   border: none;
   padding: 12px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
+  width: ${COLUMN_WIDTH}px;
+  min-width: ${COLUMN_WIDTH}px;
+  max-width: ${COLUMN_WIDTH}px;
   ${({ isSticky }) => isSticky && `
     position: sticky;
     left: 0;
     z-index: 5;
     background-color: inherit;
+    width: ${FIRST_COLUMN_WIDTH}px;
+    min-width: ${FIRST_COLUMN_WIDTH}px;
+    max-width: ${FIRST_COLUMN_WIDTH}px;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -20px;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(to left, transparent, inherit);
+      pointer-events: none;
+    }
   `}
 `;
 
@@ -614,7 +658,6 @@ const GroupableTable: React.FC = () => {
       return next;
     });
   };
-
   const renderGroup = (group: GroupedData, groupPath: string = '', level: number = 0): React.ReactNode => {
     if (group.items.length > 0) {
       return group.items.map((item, index) => {
@@ -622,7 +665,7 @@ const GroupableTable: React.FC = () => {
   
         return (
           <DataRow key={item.unit_group_id} even={index % 2 === 0}>
-          <Td level={level} isSticky>{item.group_name}</Td>
+            <Td level={level} isSticky>{item.group_name}</Td>
           <Td>{item.total_units}</Td>
           <Td>{item.occupied_units}</Td>
           <Td>{(item.occupancy_rate * 100).toFixed(2)}%</Td>
@@ -700,16 +743,16 @@ const GroupableTable: React.FC = () => {
 
       return (
         <React.Fragment key={newGroupPath}>
-              {level === 0 && index > 0 && <SeparatorRow />}
-              <GroupRow
-                level={level}
-                isExpanded={isExpanded}
-                onClick={() => toggleGroup(newGroupPath)}
-              >
-                <Td level={level} isSticky>
-                  <ExpandIcon isExpanded={isExpanded}>▶</ExpandIcon>
-                  {key}
-                </Td>
+          {level === 0 && index > 0 && <SeparatorRow />}
+          <GroupRow
+            level={level}
+            isExpanded={isExpanded}
+            onClick={() => toggleGroup(newGroupPath)}
+          >
+            <Td level={level} isSticky>
+              <ExpandIcon isExpanded={isExpanded}>▶</ExpandIcon>
+              {key}
+            </Td>
               <Td>{subGroup.total_units}</Td>
               <Td>{subGroup.occupied_units}</Td>
               <Td>{(subGroup.occupancy_rate * 100).toFixed(2)}%</Td>
@@ -825,10 +868,10 @@ return (
   <PageContainer>
     <ToastContainer />
     <TableWrapper>
-      <Table>
-        <thead>
+     <Table>
+     <thead>
         <tr>
-          <Th isSticky>Group</Th>
+          <Th isSticky isStickyLeft>Group</Th>
           <Th isSticky>Total Units</Th>
           <Th isSticky>Occupied Units</Th>
           <Th isSticky>Occupancy Rate</Th>
@@ -878,11 +921,11 @@ return (
           <Th isSticky>Suggested Web Rate</Th>
           <Th isSticky>Effective Web Rate</Th>
         </tr>
-      </thead>
-      <tbody>
-          {renderGroup(groupedData)}
+        </thead>
+        <tbody>
+        {renderGroup(groupedData)}
         </tbody>
-      </Table>
+    </Table>
     </TableWrapper>
     {renderFilters()}
   </PageContainer>
