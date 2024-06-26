@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { toast, ToastContainer  } from 'react-toastify';
 
 interface RateManagementItem {
   facility_name: string;
@@ -14,7 +15,6 @@ interface RateManagementItem {
   occupancy_rate: number;
   recent_period_average_move_in_rent: number | null;
   suggested_web_rate: number | null;
-  // Additional numerical columns
   average_standard_rate: number;
   average_web_rate: number;
   blended_move_in_projection: number;
@@ -44,6 +44,7 @@ interface RateManagementItem {
   projected_occupancy_impact: number;
   leasing_velocity_impact: number;
   competitor_percentage_cheaper: number;
+  mean_competitor_price: number;
 }
 
 interface GroupedData {
@@ -53,7 +54,6 @@ interface GroupedData {
   occupancy_rate: number;
   recent_period_average_move_in_rent: number | null;
   suggested_web_rate: number | null;
-  // Additional aggregated numerical columns
   average_standard_rate: number;
   average_web_rate: number;
   blended_move_in_projection: number;
@@ -83,31 +83,83 @@ interface GroupedData {
   projected_occupancy_impact: number;
   leasing_velocity_impact: number;
   competitor_percentage_cheaper: number;
+  mean_competitor_price: number;
   subGroups?: { [key: string]: GroupedData };
 }
 
 
 const PageContainer = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
   min-height: 100vh;
   background-color: white;
+  padding: 20px;
+  overflow: hidden; // Remove the outer scrollbar
 `;
 
 const TableWrapper = styled.div`
-  width: 80vw;
+  width: 75vw;
   height: 80vh;
   overflow: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  background-color: white;
-  
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // Internet Explorer and Edge
   &::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    background: transparent; /* Chrome/Safari/Webkit */
+    display: none; // Chrome, Safari, and Opera
   }
+`;
+
+const FilterContainer = styled.div`
+  width: 20vw;
+  height: 80vh;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+  overflow-y: auto;
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // Internet Explorer and Edge
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari, and Opera
+  }
+`;
+
+const TabContainer = styled.div`
+  display: flex;
+  margin-bottom: 16px;
+`;
+
+const Tab = styled.button<{ active: boolean }>`
+  padding: 8px 16px;
+  border: none;
+  background-color: ${({ active }) => (active ? '#007bff' : '#e0e0e0')};
+  color: ${({ active }) => (active ? 'white' : 'black')};
+  cursor: pointer;
+  &:not(:last-child) {
+    margin-right: 8px;
+  }
+`;
+
+const CheckboxContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const EffectiveWebRateInput = styled.input`
+  width: 80px;
+  text-align: right;
+  padding-right: 15px;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
 `;
 
 const TableContainer = styled.div`
@@ -230,9 +282,56 @@ const GroupableTable: React.FC = () => {
     projected_occupancy_impact: 0,
     leasing_velocity_impact: 0,
     competitor_percentage_cheaper: 0,
+    mean_competitor_price: 0,
   });
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    facility: new Set<string>(),
+    type: new Set<string>(),
+    area: new Set<string>(),
+  });
+  const [activeTab, setActiveTab] = useState<'facility' | 'type' | 'area'>('facility');
+  const [editingEffectiveWebRate, setEditingEffectiveWebRate] = useState<{ [key: string]: number | null }>({});
+
+  const handleEffectiveWebRateUpdate = async (groupPath: string, value: number | null) => {
+    // Ensure the value is rounded to 2 decimal places
+    const formattedValue = value !== null ? Number(value.toFixed(2)) : null;
+  
+    // Optimistic update
+    setEditingEffectiveWebRate(prev => ({ ...prev, [groupPath]: formattedValue }));
+  
+    try {
+      const response = await fetch('/api/update-rate-management', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          {
+            unit_group_id: groupPath,
+            suggested_web_rate: formattedValue
+          }
+        ]),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update effective web rate');
+      }
+  
+      const result = await response.json();
+      console.log('Update result:', result);
+  
+      // Show success toast
+      toast.success('Effective web rate updated successfully');
+    } catch (error) {
+      console.error('Error updating effective web rate:', error);
+      // Revert the change
+      setEditingEffectiveWebRate(prev => ({ ...prev, [groupPath]: null }));
+      // Show error toast
+      toast.error('Failed to update effective web rate');
+    }
+  };
 
   useEffect(() => {
     fetch('/api/rate-management', { cache: 'no-store' })
@@ -259,7 +358,15 @@ const GroupableTable: React.FC = () => {
     };
 
     const groupData = (items: RateManagementItem[], levels: (keyof RateManagementItem)[]): GroupedData => {
-      if (levels.length === 0) {
+        // Filter out items with null facility names
+        items = items.filter(item => item.facility_name !== null);
+        // Apply filters
+        items = items.filter(item => 
+          (filters.facility.size === 0 || filters.facility.has(item.facility_name)) &&
+          (filters.type.size === 0 || filters.type.has(item.group_type)) &&
+          (filters.area.size === 0 || filters.area.has(item.most_common_area_bucket))
+        );
+        if (levels.length === 0) {
         const total_units = items.reduce((sum, item) => sum + item.total_units, 0);
         const occupied_units = items.reduce((sum, item) => sum + item.occupied_units, 0);
         const occupancy_rate = occupied_units / total_units;
@@ -295,6 +402,7 @@ const GroupableTable: React.FC = () => {
         const move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.move_outs_last_60_days_facility, 0) / items.length;
         const projected_move_ins_facility = items.reduce((sum, item) => sum + item.projected_move_ins_facility, 0) / items.length;
         const projected_move_outs_facility = items.reduce((sum, item) => sum + item.projected_move_outs_facility, 0) / items.length;
+        const mean_competitor_price = items.reduce((sum, item) => sum + item.mean_competitor_price, 0) / items.length;
 
         return { 
           items, 
@@ -331,7 +439,8 @@ const GroupableTable: React.FC = () => {
           long_term_customer_average,
           projected_occupancy_impact,
           leasing_velocity_impact,
-          competitor_percentage_cheaper
+          competitor_percentage_cheaper,
+          mean_competitor_price
         };
       }
 
@@ -345,7 +454,7 @@ const GroupableTable: React.FC = () => {
       }, {} as { [key: string]: RateManagementItem[] });
 
       const sortedKeys = Object.keys(grouped).sort((a, b) => {
-        if (levels[0] === 'facility_name' || levels[0] === 'group_type' || levels[0] === 'most_common_description') {
+        if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
           return a.localeCompare(b);
         } else if (levels[0] === 'most_common_area_bucket') {
           return compareBaseArea(a, b);
@@ -393,6 +502,7 @@ const GroupableTable: React.FC = () => {
       const move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.move_outs_last_60_days_facility, 0) / Object.values(subGroups).length;
       const projected_move_ins_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_ins_facility, 0) / Object.values(subGroups).length;
       const projected_move_outs_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_outs_facility, 0) / Object.values(subGroups).length;
+      const mean_competitor_price = Object.values(subGroups).reduce((sum, group) => sum + group.mean_competitor_price, 0) / Object.values(subGroups).length;
 
       return { 
         items: [], 
@@ -430,16 +540,16 @@ const GroupableTable: React.FC = () => {
         leasing_velocity_impact,
         projected_occupancy_impact,
         competitor_percentage_cheaper,
+        mean_competitor_price,
         subGroups 
       };
     };
 
     if (data.length > 0) {
-      const grouped = groupData(data, ['facility_name', 'group_type', 'most_common_area_bucket', 'most_common_description']);
-      console.log('Grouped Data:', grouped);
+      const grouped = groupData(data, ['facility_name', 'group_type', 'most_common_area_bucket']);
       setGroupedData(grouped);
     }
-  }, [data]);
+  }, [data, filters]);
 
   const toggleGroup = (groupPath: string) => {
     setExpandedGroups(prev => {
@@ -455,8 +565,11 @@ const GroupableTable: React.FC = () => {
 
   const renderGroup = (group: GroupedData, groupPath: string = '', level: number = 0): React.ReactNode => {
     if (group.items.length > 0) {
-      return group.items.map((item, index) => (
-        <DataRow key={`${groupPath}-${index}`} even={index % 2 === 0}>
+      return group.items.map((item, index) => {
+        const itemKey = `${item.facility_name}-${item.group_type}-${item.most_common_area_bucket}-${index}`;
+        const effectiveWebRate = editingEffectiveWebRate[itemKey] ?? item.suggested_web_rate ?? null;  
+        return (
+          <DataRow key={itemKey} even={index % 2 === 0}>
           <Td level={level} isSticky>{item.group_name}</Td>
           <Td>{item.total_units}</Td>
           <Td>{item.occupied_units}</Td>
@@ -490,6 +603,7 @@ const GroupableTable: React.FC = () => {
 
           <Td>{item.competitor_count}</Td>
           <Td>{(item.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
+          <Td>${(item.mean_competitor_price).toFixed(2)}</Td>
           <Td>{(item.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
           <Td>{(item.leasing_velocity_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
           <Td>{(item.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
@@ -499,17 +613,40 @@ const GroupableTable: React.FC = () => {
           <Td>${item.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.long_term_customer_average?.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
+          <Td>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <span style={{ position: 'absolute', left: '5px', top: '50%', transform: 'translateY(-50%)' }}>$</span>
+              <EffectiveWebRateInput
+                type="number"
+                value={effectiveWebRate !== null ? effectiveWebRate.toFixed(2) : ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const numericValue = parseFloat(value);
+                  if (!isNaN(numericValue)) {
+                    setEditingEffectiveWebRate(prev => ({ ...prev, [itemKey]: numericValue }));
+                  }
+                }}
+                onBlur={() => handleEffectiveWebRateUpdate(itemKey, effectiveWebRate)}
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <button onClick={() => handleEffectiveWebRateUpdate(itemKey, effectiveWebRate)}>
+              Send
+            </button>
+          </Td>
         </DataRow>
-      ));
-    }
+      );
+    });
+  }
 
-    if (group.subGroups) {
-        return Object.entries(group.subGroups).map(([key, subGroup], index) => {
-          const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
-          const isExpanded = expandedGroups.has(newGroupPath);
-    
-          return (
-            <React.Fragment key={newGroupPath}>
+  if (group.subGroups) {
+    return Object.entries(group.subGroups).map(([key, subGroup], index) => {
+      const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
+      const isExpanded = expandedGroups.has(newGroupPath);
+
+      return (
+        <React.Fragment key={newGroupPath}>
               {level === 0 && index > 0 && <SeparatorRow />}
               <GroupRow
                 level={level}
@@ -552,6 +689,7 @@ const GroupableTable: React.FC = () => {
 
               <Td>{subGroup.competitor_count}</Td>
               <Td>{(subGroup.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
+              <Td>${(subGroup.mean_competitor_price).toFixed(2)}</Td>
               <Td>{(subGroup.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
               <Td>{(subGroup.leasing_velocity_impact* 100).toFixed(2) ?? 'N/A'}%</Td>
               <Td>{(subGroup.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
@@ -561,6 +699,7 @@ const GroupableTable: React.FC = () => {
               <Td>${subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.long_term_customer_average.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
+              <Td>N/A</Td>
               </GroupRow>
           {isExpanded && renderGroup(subGroup, newGroupPath, level + 1)}
         </React.Fragment>
@@ -574,10 +713,58 @@ const GroupableTable: React.FC = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-  return (
-    <PageContainer>
-      <TableWrapper>
-        <Table>
+
+  const renderFilters = () => {
+    let filterValues: string[] = [];
+    let filterKey: 'facility' | 'type' | 'area';
+  
+    if (activeTab === 'facility') {
+      filterValues = Array.from(new Set(data.map(item => item.facility_name)));
+      filterKey = 'facility';
+    } else if (activeTab === 'type') {
+      filterValues = Array.from(new Set(data.map(item => item.group_type)));
+      filterKey = 'type';
+    } else {
+      filterValues = Array.from(new Set(data.map(item => item.most_common_area_bucket)));
+      filterKey = 'area';
+    }
+  
+    return (
+      <FilterContainer>
+        <TabContainer>
+          <Tab active={activeTab === 'facility'} onClick={() => setActiveTab('facility')}>Facility</Tab>
+          <Tab active={activeTab === 'type'} onClick={() => setActiveTab('type')}>Type</Tab>
+          <Tab active={activeTab === 'area'} onClick={() => setActiveTab('area')}>Area</Tab>
+        </TabContainer>
+        <CheckboxContainer>
+          {filterValues.map(value => (
+            <CheckboxLabel key={value}>
+              <input
+                type="checkbox"
+                checked={filters[filterKey].has(value)}
+                onChange={() => {
+                  const newFilters = new Set(filters[filterKey]);
+                  if (newFilters.has(value)) {
+                    newFilters.delete(value);
+                  } else {
+                    newFilters.add(value);
+                  }
+                  setFilters({ ...filters, [filterKey]: newFilters });
+                }}
+              />
+              {value}
+            </CheckboxLabel>
+          ))}
+        </CheckboxContainer>
+      </FilterContainer>
+    );
+  };
+
+return (
+  <PageContainer>
+    <ToastContainer />
+    <TableWrapper>
+      <Table>
         <thead>
         <tr>
           <Th isSticky>Group</Th>
@@ -615,6 +802,7 @@ const GroupableTable: React.FC = () => {
 
           <Th isSticky>Competitor Count</Th>
           <Th isSticky>Competitor % Cheaper</Th>
+          <Th isSticky>Mean Competitor Rate</Th>
           <Th isSticky>Competitor Impact</Th>
           <Th isSticky>Leasing Velocity Impact</Th>
           <Th isSticky>Projected Occupancy Impact</Th>
@@ -624,15 +812,17 @@ const GroupableTable: React.FC = () => {
           <Th isSticky>Long Term Customer Average</Th>
           <Th isSticky>Recent Avg Move-In Rent</Th>
           <Th isSticky>Suggested Web Rate</Th>
+          <Th isSticky>Effective Web Rate</Th>
         </tr>
       </thead>
       <tbody>
-        {renderGroup(groupedData)}
-      </tbody>
-    </Table>
-  </TableWrapper>
+          {renderGroup(groupedData)}
+        </tbody>
+      </Table>
+    </TableWrapper>
+    {renderFilters()}
   </PageContainer>
-  );
+);
 };
 
 export default GroupableTable;
