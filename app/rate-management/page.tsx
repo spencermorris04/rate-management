@@ -43,6 +43,7 @@ interface RateManagementItem {
   long_term_customer_average: number;
   projected_occupancy_impact: number;
   leasing_velocity_impact: number;
+  competitor_percentage_cheaper: number;
 }
 
 interface GroupedData {
@@ -81,26 +82,76 @@ interface GroupedData {
   long_term_customer_average: number;
   projected_occupancy_impact: number;
   leasing_velocity_impact: number;
+  competitor_percentage_cheaper: number;
   subGroups?: { [key: string]: GroupedData };
 }
 
-const Table = styled.table`
-  border-collapse: collapse;
-  width: 100%;
-  font-family: Arial, sans-serif;
+
+const PageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: white;
 `;
 
-const Th = styled.th`
+const TableWrapper = styled.div`
+  width: 80vw;
+  height: 80vh;
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  background-color: white;
+  
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent; /* Chrome/Safari/Webkit */
+  }
+`;
+
+const TableContainer = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
+`;
+
+const Table = styled.table`
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background-color: white;
+`;
+
+const SeparatorRow = styled.tr`
+  height: 2px;
+  background-color: black;
+`;
+
+const Th = styled.th<{ isSticky?: boolean }>`
   background-color: #f2f2f2;
   border: 1px solid #ddd;
   padding: 12px;
   text-align: left;
+  ${({ isSticky }) => isSticky && `
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #e6e6e6;
+  `}
 `;
 
-const Td = styled.td<{ level?: number }>`
+const Td = styled.td<{ level?: number; isSticky?: boolean }>`
   border: 1px solid #ddd;
   padding: 12px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
+  ${({ isSticky }) => isSticky && `
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: inherit;
+  `}
 `;
 
 const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
@@ -123,14 +174,6 @@ const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
   }
 `;
 
-const ExpandIcon = styled.span<{ isExpanded: boolean }>`
-  display: inline-block;
-  width: 20px;
-  text-align: center;
-  transition: transform 0.3s;
-  transform: ${({ isExpanded }) => (isExpanded ? 'rotate(90deg)' : 'rotate(0)')};
-`;
-
 const DataRow = styled.tr<{ even: boolean }>`
   background-color: ${({ even }) => (even ? '#f9f9f9' : 'white')};
   transition: background-color 0.3s;
@@ -138,6 +181,14 @@ const DataRow = styled.tr<{ even: boolean }>`
   &:hover {
     background-color: #f5f5f5;
   }
+`;
+
+const ExpandIcon = styled.span<{ isExpanded: boolean }>`
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+  transition: transform 0.3s;
+  transform: ${({ isExpanded }) => (isExpanded ? 'rotate(90deg)' : 'rotate(0)')};
 `;
 
 const GroupableTable: React.FC = () => {
@@ -178,6 +229,7 @@ const GroupableTable: React.FC = () => {
     long_term_customer_average: 0,
     projected_occupancy_impact: 0,
     leasing_velocity_impact: 0,
+    competitor_percentage_cheaper: 0,
   });
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -242,6 +294,7 @@ const GroupableTable: React.FC = () => {
         const leasing_velocity_impact = items.reduce((sum, item) => sum + (item.leasing_velocity_impact || 0), 0) / items.length;
         const projected_occupancy_impact = items.reduce((sum, item) => sum + item.projected_occupancy_impact, 0);
         const long_term_customer_average = items.reduce((sum, item) => sum + (item.long_term_customer_average || 0), 0) / items.length;        
+        const competitor_percentage_cheaper = items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
 
         return { 
           items, 
@@ -277,7 +330,8 @@ const GroupableTable: React.FC = () => {
           projected_net_rentals,
           long_term_customer_average,
           projected_occupancy_impact,
-          leasing_velocity_impact
+          leasing_velocity_impact,
+          competitor_percentage_cheaper
         };
       }
 
@@ -338,6 +392,7 @@ const GroupableTable: React.FC = () => {
       const long_term_customer_average = Object.values(subGroups).reduce((sum, group) => sum + (group.long_term_customer_average || 0), 0) / Object.values(subGroups).length;
       const projected_occupancy_impact = Object.values(subGroups).reduce((sum, group) => sum + group.projected_occupancy_impact, 0);
       const leasing_velocity_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.leasing_velocity_impact || 0), 0) / Object.values(subGroups).length;      
+      const competitor_percentage_cheaper = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_cheaper, 0) / Object.values(subGroups).length;
 
       return { 
         items: [], 
@@ -374,6 +429,7 @@ const GroupableTable: React.FC = () => {
         long_term_customer_average,
         leasing_velocity_impact,
         projected_occupancy_impact,
+        competitor_percentage_cheaper,
         subGroups 
       };
     };
@@ -401,113 +457,116 @@ const GroupableTable: React.FC = () => {
     if (group.items.length > 0) {
       return group.items.map((item, index) => (
         <DataRow key={`${groupPath}-${index}`} even={index % 2 === 0}>
-          <Td level={level}>{item.group_name}</Td>
+          <Td level={level} isSticky>{item.group_name}</Td>
           <Td>{item.total_units}</Td>
           <Td>{item.occupied_units}</Td>
           <Td>{(item.occupancy_rate * 100).toFixed(2)}%</Td>
 
-          <Td>{item.historical_move_ins_last_60_days_group}</Td>
+          <Td>{item.historical_move_ins_last_60_days_group.toFixed(2) ?? 'N/A'}</Td>
           <Td>{item.move_ins_last_60_days_group}</Td>
-          <Td>{item.historical_move_ins_next_60_days_group}</Td>
-          <Td>{item.projected_move_ins_group}</Td>
+          <Td>{item.historical_move_ins_next_60_days_group.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.projected_move_ins_group.toFixed(2) ?? 'N/A'}</Td>
 
-          <Td>{item.historical_move_ins_last_60_days_facility}</Td>
+          <Td>{item.historical_move_ins_last_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
           <Td>{item.move_ins_last_60_days_facility}</Td>
-          <Td>{item.historical_move_ins_next_60_days_facility}</Td>
-          <Td>{item.projected_move_ins_facility}</Td>
-          <Td>{item.blended_move_in_projection}</Td>
+          <Td>{item.historical_move_ins_next_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.projected_move_ins_facility.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.blended_move_in_projection.toFixed(2) ?? 'N/A'}</Td>
 
-          <Td>{item.historical_move_outs_last_60_days_group}</Td>
+          <Td>{item.historical_move_outs_last_60_days_group.toFixed(2) ?? 'N/A'}</Td>
           <Td>{item.move_outs_last_60_days_group}</Td>
-          <Td>{item.historical_move_outs_next_60_days_group}</Td>
-          <Td>{item.projected_move_outs_group}</Td>
+          <Td>{item.historical_move_outs_next_60_days_group.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.projected_move_outs_group.toFixed(2) ?? 'N/A'}</Td>
 
-          <Td>{item.historical_move_outs_last_60_days_facility}</Td>
+          <Td>{item.historical_move_outs_last_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
           <Td>{item.move_outs_last_60_days_facility}</Td>
-          <Td>{item.historical_move_outs_next_60_days_facility}</Td>
-          <Td>{item.projected_move_outs_facility}</Td>
-          <Td>{item.blended_move_out_projection}</Td>
+          <Td>{item.historical_move_outs_next_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.projected_move_outs_facility.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.blended_move_out_projection.toFixed(2) ?? 'N/A'}</Td>
 
           <Td>{item.current_period_net_rentals}</Td>
-          <Td>{item.historical_net_rentals}</Td>
-          <Td>{item.projected_net_rentals}</Td>
+          <Td>{item.historical_net_rentals.toFixed(2) ?? 'N/A'}</Td>
+          <Td>{item.projected_net_rentals.toFixed(2) ?? 'N/A'}</Td>
 
           <Td>{item.competitor_count}</Td>
-          <Td>{item.competitor_impact}</Td>
-          <Td>{item.leasing_velocity_impact}</Td>
-          <Td>{item.projected_occupancy_impact}</Td>
+          <Td>{(item.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
+          <Td>{(item.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
+          <Td>{(item.leasing_velocity_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
+          <Td>{(item.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
 
-          <Td>{item.average_standard_rate}</Td>
-          <Td>{item.average_web_rate}</Td>
+          <Td>${item.average_standard_rate.toFixed(2) ?? 'N/A'}</Td>
+          <Td>${item.average_web_rate.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
-          <Td>${item.long_term_customer_average.toFixed(2) ?? 'N/A'}</Td>
+          <Td>${item.long_term_customer_average?.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
         </DataRow>
       ));
     }
 
     if (group.subGroups) {
-      return Object.entries(group.subGroups).map(([key, subGroup]) => {
-        const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
-        const isExpanded = expandedGroups.has(newGroupPath);
-
-        return (
-          <React.Fragment key={newGroupPath}>
-            <GroupRow
-              level={level}
-              isExpanded={isExpanded}
-              onClick={() => toggleGroup(newGroupPath)}
-            >
-              <Td level={level}>
-                <ExpandIcon isExpanded={isExpanded}>▶</ExpandIcon>
-                {key}
-              </Td>
+        return Object.entries(group.subGroups).map(([key, subGroup], index) => {
+          const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
+          const isExpanded = expandedGroups.has(newGroupPath);
+    
+          return (
+            <React.Fragment key={newGroupPath}>
+              {level === 0 && index > 0 && <SeparatorRow />}
+              <GroupRow
+                level={level}
+                isExpanded={isExpanded}
+                onClick={() => toggleGroup(newGroupPath)}
+              >
+                <Td level={level} isSticky>
+                  <ExpandIcon isExpanded={isExpanded}>▶</ExpandIcon>
+                  {key}
+                </Td>
               <Td>{subGroup.total_units}</Td>
               <Td>{subGroup.occupied_units}</Td>
               <Td>{(subGroup.occupancy_rate * 100).toFixed(2)}%</Td>
 
-              <Td>{subGroup.historical_move_ins_last_60_days_group}</Td>
+              <Td>{subGroup.historical_move_ins_last_60_days_group.toFixed(2) ?? 'N/A'}</Td>
               <Td>{subGroup.move_ins_last_60_days_group}</Td>
-              <Td>{subGroup.historical_move_ins_next_60_days_group}</Td>
-              <Td>{subGroup.projected_move_ins_group}</Td>
+              <Td>{subGroup.historical_move_ins_next_60_days_group.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.projected_move_ins_group.toFixed(2) ?? 'N/A'}</Td>
 
-              <Td>{subGroup.historical_move_ins_last_60_days_facility}</Td>
+              <Td>{subGroup.historical_move_ins_last_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
               <Td>{subGroup.move_ins_last_60_days_facility}</Td>
-              <Td>{subGroup.historical_move_ins_next_60_days_facility}</Td>
-              <Td>{subGroup.projected_move_ins_facility}</Td>
-              <Td>{subGroup.blended_move_in_projection}</Td>
+              <Td>{subGroup.historical_move_ins_next_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.projected_move_ins_facility.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.blended_move_in_projection.toFixed(2) ?? 'N/A'}</Td>
 
-              <Td>{subGroup.historical_move_outs_last_60_days_group}</Td>
+              <Td>{subGroup.historical_move_outs_last_60_days_group.toFixed(2) ?? 'N/A'}</Td>
               <Td>{subGroup.move_outs_last_60_days_group}</Td>
-              <Td>{subGroup.historical_move_outs_next_60_days_group}</Td>
-              <Td>{subGroup.projected_move_outs_group}</Td>
+              <Td>{subGroup.historical_move_outs_next_60_days_group.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.projected_move_outs_group.toFixed(2) ?? 'N/A'}</Td>
 
-              <Td>{subGroup.historical_move_outs_last_60_days_facility}</Td>
+              <Td>{subGroup.historical_move_outs_last_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
               <Td>{subGroup.move_outs_last_60_days_facility}</Td>
-              <Td>{subGroup.historical_move_outs_next_60_days_facility}</Td>
-              <Td>{subGroup.projected_move_outs_facility}</Td>
-              <Td>{subGroup.blended_move_out_projection}</Td>
+              <Td>{subGroup.historical_move_outs_next_60_days_facility.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.projected_move_outs_facility.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.blended_move_out_projection.toFixed(2) ?? 'N/A'}</Td>
 
               <Td>{subGroup.current_period_net_rentals}</Td>
-              <Td>{subGroup.historical_net_rentals}</Td>
-              <Td>{subGroup.projected_net_rentals}</Td>
+              <Td>{subGroup.historical_net_rentals.toFixed(2) ?? 'N/A'}</Td>
+              <Td>{subGroup.projected_net_rentals.toFixed(2) ?? 'N/A'}</Td>
 
               <Td>{subGroup.competitor_count}</Td>
-              <Td>{subGroup.competitor_impact}</Td>
-              <Td>{subGroup.leasing_velocity_impact}</Td>
-              <Td>{subGroup.projected_occupancy_impact}</Td>
+              <Td>{(subGroup.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
+              <Td>{(subGroup.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
+              <Td>{(subGroup.leasing_velocity_impact* 100).toFixed(2) ?? 'N/A'}%</Td>
+              <Td>{(subGroup.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
 
-              <Td>{subGroup.average_standard_rate}</Td>
-              <Td>{subGroup.average_web_rate}</Td>
+              <Td>${subGroup.average_standard_rate.toFixed(2) ?? 'N/A'}</Td>
+              <Td>${subGroup.average_web_rate.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.long_term_customer_average.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
-            </GroupRow>
-            {isExpanded && renderGroup(subGroup, newGroupPath, level + 1)}
-          </React.Fragment>
-        );
-      });
-    }
+              </GroupRow>
+          {isExpanded && renderGroup(subGroup, newGroupPath, level + 1)}
+        </React.Fragment>
+      );
+    });
+  }
 
     return null;
   };
@@ -515,60 +574,64 @@ const GroupableTable: React.FC = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   return (
-    <Table>
-      <thead>
+    <PageContainer>
+      <TableWrapper>
+        <Table>
+        <thead>
         <tr>
-          <Th>Group</Th>
-          <Th>Total Units</Th>
-          <Th>Occupied Units</Th>
-          <Th>Occupancy Rate</Th>
+          <Th isSticky>Group</Th>
+          <Th isSticky>Total Units</Th>
+          <Th isSticky>Occupied Units</Th>
+          <Th isSticky>Occupancy Rate</Th>
 
 
-          <Th>Historical Move-Ins Last 60 Days (Group)</Th>
-          <Th>Move-Ins Last 60 Days (Group)</Th>
-          <Th>Historical Move-Ins Next 60 Days (Group)</Th>
-          <Th>Projected Move-Ins (Group)</Th>
+          <Th isSticky>Historical Move-Ins Last 60 Days (Group)</Th>
+          <Th isSticky>Move-Ins Last 60 Days (Group)</Th>
+          <Th isSticky>Historical Move-Ins Next 60 Days (Group)</Th>
+          <Th isSticky>Projected Move-Ins (Group)</Th>
 
-          <Th>Historical Move-Ins Last 60 Days (Facility)</Th>
-          <Th>Move-Ins Last 60 Days (Facility)</Th>
-          <Th>Historical Move-Ins Next 60 Days (Facility)</Th>
-          <Th>Projected Move-Ins (Facility)</Th>
-          <Th>Blended Move-In Projection</Th>
+          <Th isSticky>Historical Move-Ins Last 60 Days (Facility)</Th>
+          <Th isSticky>Move-Ins Last 60 Days (Facility)</Th>
+          <Th isSticky>Historical Move-Ins Next 60 Days (Facility)</Th>
+          <Th isSticky>Projected Move-Ins (Facility)</Th>
+          <Th isSticky>Blended Move-In Projection</Th>
 
 
-          <Th>Historical Move-Outs Last 60 Days (Group)</Th>
-          <Th>Move-Outs Last 60 Days (Group)</Th>
-          <Th>Historical Move-Outs Next 60 Days (Group)</Th>
-          <Th>Projected Move-Outs (Group)</Th>
+          <Th isSticky>Historical Move-Outs Last 60 Days (Group)</Th>
+          <Th isSticky>Move-Outs Last 60 Days (Group)</Th>
+          <Th isSticky>Historical Move-Outs Next 60 Days (Group)</Th>
+          <Th isSticky>Projected Move-Outs (Group)</Th>
 
-          <Th>Historical Move-Outs Last 60 Days (Facility)</Th>
-          <Th>Move-Outs Last 60 Days (Facility)</Th>
-          <Th>Historical Move-Outs Next 60 Days (Facility)</Th>
-          <Th>Projected Move-Outs (Facility)</Th>
-          <Th>Blended Move-Out Projection</Th>
+          <Th isSticky>Historical Move-Outs Last 60 Days (Facility)</Th>
+          <Th isSticky>Move-Outs Last 60 Days (Facility)</Th>
+          <Th isSticky>Historical Move-Outs Next 60 Days (Facility)</Th>
+          <Th isSticky>Projected Move-Outs (Facility)</Th>
+          <Th isSticky>Blended Move-Out Projection</Th>
 
-          <Th>Current Period Net Rentals</Th>
-          <Th>Historical Net Rentals</Th>
-          <Th>Projected Net Rentals</Th>
+          <Th isSticky>Current Period Net Rentals</Th>
+          <Th isSticky>Historical Net Rentals</Th>
+          <Th isSticky>Projected Net Rentals</Th>
 
-          <Th>Competitor Count</Th>
-          <Th>Competitor Impact</Th>
-          <Th>Leasing Velocity Impact</Th>
-          <Th>Projected Occupancy Impact</Th>
+          <Th isSticky>Competitor Count</Th>
+          <Th isSticky>Competitor % Cheaper</Th>
+          <Th isSticky>Competitor Impact</Th>
+          <Th isSticky>Leasing Velocity Impact</Th>
+          <Th isSticky>Projected Occupancy Impact</Th>
 
-          <Th>Avg Standard Rate</Th>
-          <Th>Avg Web Rate</Th>
-          <Th>Long Term Customer Average</Th>
-          <Th>Recent Avg Move-In Rent</Th>
-          <Th>Suggested Web Rate</Th>
+          <Th isSticky>Avg Standard Rate</Th>
+          <Th isSticky>Avg Web Rate</Th>
+          <Th isSticky>Long Term Customer Average</Th>
+          <Th isSticky>Recent Avg Move-In Rent</Th>
+          <Th isSticky>Suggested Web Rate</Th>
         </tr>
       </thead>
       <tbody>
         {renderGroup(groupedData)}
       </tbody>
     </Table>
+  </TableWrapper>
+  </PageContainer>
   );
 };
 
