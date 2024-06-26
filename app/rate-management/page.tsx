@@ -6,7 +6,7 @@ import { toast, ToastContainer  } from 'react-toastify';
 
 interface RateManagementItem {
   facility_name: string;
-  most_common_area_bucket: string;
+  area_bucket: string;
   most_common_description: string;
   group_name: string;
   group_type: string;
@@ -46,7 +46,8 @@ interface RateManagementItem {
   leasing_velocity_impact: number;
   competitor_percentage_cheaper: number;
   mean_competitor_price: number;
-  most_common_base_area: number;
+  historical_move_ins_last_60_days_company: number;
+  base_area: number;
 }
 
 interface GroupedData {
@@ -86,6 +87,7 @@ interface GroupedData {
   leasing_velocity_impact: number;
   competitor_percentage_cheaper: number;
   mean_competitor_price: number;
+  historical_move_ins_last_60_days_company: number;
   subGroups?: { [key: string]: GroupedData };
 }
 
@@ -104,23 +106,29 @@ const PageContainer = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   min-height: 100vh;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
   padding: 20px;
-  overflow: hidden; // Remove the outer scrollbar
+  overflow: hidden;
+  opacity: 0.8;
 `;
 
 const TableWrapper = styled.div`
   width: 75vw;
   height: 90vh;
   overflow: auto;
-  scrollbar-width: none; // Firefox
-  -ms-overflow-style: none; // Internet Explorer and Edge
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; // Chrome, Safari, and Opera
+    display: none;
   }
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(213, 184, 255, 0.18);
   position: relative;
+  opacity: 0.95;
 `;
 
 const FadeBottom = styled.div`
@@ -146,15 +154,19 @@ const FadeRight = styled.div`
 const FilterContainer = styled.div`
   width: 20vw;
   height: 90vh;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  background-color: rgba(245, 245, 245, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
   padding: 16px;
   overflow-y: auto;
-  scrollbar-width: none; // Firefox
-  -ms-overflow-style: none; // Internet Explorer and Edge
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; // Chrome, Safari, and Opera
+    display: none;
   }
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  opacity: 1;
 `;
 
 const TabContainer = styled.div`
@@ -311,6 +323,7 @@ const GroupableTable: React.FC = () => {
     projected_net_rentals: 0,
     long_term_customer_average: 0,
     projected_occupancy_impact: 0,
+    historical_move_ins_last_60_days_company: 0,
     leasing_velocity_impact: 0,
     competitor_percentage_cheaper: 0,
     mean_competitor_price: 0,
@@ -395,7 +408,7 @@ const GroupableTable: React.FC = () => {
         items = items.filter(item => 
           (filters.facility.size === 0 || filters.facility.has(item.facility_name)) &&
           (filters.type.size === 0 || filters.type.has(item.group_type)) &&
-          (filters.area.size === 0 || filters.area.has(item.most_common_area_bucket))
+          (filters.area.size === 0 || filters.area.has(item.area_bucket))
         );
         if (levels.length === 0) {
         const total_units = items.reduce((sum, item) => sum + item.total_units, 0);
@@ -426,6 +439,7 @@ const GroupableTable: React.FC = () => {
         const long_term_customer_average = items.reduce((sum, item) => sum + (item.long_term_customer_average || 0), 0) / items.length;        
         const competitor_percentage_cheaper = items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
         const historical_move_ins_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_last_60_days_facility, 0) / items.length;
+        const historical_move_ins_last_60_days_company = items.reduce((sum, item) => sum + item.historical_move_ins_last_60_days_company, 0) / items.length;
         const historical_move_ins_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_next_60_days_facility, 0) / items.length;
         const historical_move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_last_60_days_facility, 0) / items.length;
         const historical_move_outs_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_next_60_days_facility, 0) / items.length;
@@ -469,6 +483,7 @@ const GroupableTable: React.FC = () => {
           projected_net_rentals,
           long_term_customer_average,
           projected_occupancy_impact,
+          historical_move_ins_last_60_days_company,
           leasing_velocity_impact,
           competitor_percentage_cheaper,
           mean_competitor_price
@@ -487,11 +502,11 @@ const GroupableTable: React.FC = () => {
       let sortedKeys: string[];
       if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
         sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
-      } else if (levels[0] === 'most_common_area_bucket') {
+      } else if (levels[0] === 'area_bucket') {
         sortedKeys = Object.keys(grouped).sort((a, b) => {
           const itemA = grouped[a][0];
           const itemB = grouped[b][0];
-          return itemA.most_common_base_area - itemB.most_common_base_area;
+          return itemA.base_area - itemB.base_area;
         });
       } else {
         sortedKeys = Object.keys(grouped);
@@ -530,6 +545,7 @@ const GroupableTable: React.FC = () => {
       const leasing_velocity_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.leasing_velocity_impact || 0), 0) / Object.values(subGroups).length;      
       const competitor_percentage_cheaper = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_cheaper, 0) / Object.values(subGroups).length;
       const historical_move_ins_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_facility, 0) / Object.values(subGroups).length;
+      const historical_move_ins_last_60_days_company = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_company, 0) / Object.values(subGroups).length;
       const historical_move_ins_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_facility, 0) / Object.values(subGroups).length;
       const historical_move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_last_60_days_facility, 0) / Object.values(subGroups).length;
       const historical_move_outs_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_next_60_days_facility, 0) / Object.values(subGroups).length;
@@ -572,6 +588,7 @@ const GroupableTable: React.FC = () => {
         projected_move_outs_group, 
         projected_net_rentals, 
         long_term_customer_average,
+        historical_move_ins_last_60_days_company,
         leasing_velocity_impact,
         projected_occupancy_impact,
         competitor_percentage_cheaper,
@@ -581,7 +598,7 @@ const GroupableTable: React.FC = () => {
     };
 
     if (data.length > 0) {
-      const grouped = groupData(data, ['facility_name', 'group_type', 'most_common_area_bucket']);
+      const grouped = groupData(data, ['facility_name', 'group_type', 'area_bucket']);
       setGroupedData(grouped);
     }
   }, [data, filters]);
@@ -640,6 +657,7 @@ const GroupableTable: React.FC = () => {
           <Td>{(item.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
           <Td>${(item.mean_competitor_price).toFixed(2)}</Td>
           <Td>{(item.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
+          <Td>{item.historical_move_ins_last_60_days_company?.toFixed(2) ?? 'N/A'}</Td>
           <Td>{(item.leasing_velocity_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
           <Td>{(item.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
 
@@ -726,6 +744,7 @@ const GroupableTable: React.FC = () => {
               <Td>{(subGroup.competitor_percentage_cheaper * 100).toFixed(2)}%</Td>
               <Td>${(subGroup.mean_competitor_price).toFixed(2)}</Td>
               <Td>{(subGroup.competitor_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
+              <Td>{subGroup.historical_move_ins_last_60_days_company?.toFixed(2) ?? 'N/A'}</Td>
               <Td>{(subGroup.leasing_velocity_impact* 100).toFixed(2) ?? 'N/A'}%</Td>
               <Td>{(subGroup.projected_occupancy_impact * 100).toFixed(2) ?? 'N/A'}%</Td>
 
@@ -762,11 +781,11 @@ const GroupableTable: React.FC = () => {
         .sort((a, b) => a.localeCompare(b));
       filterKey = 'type';
     } else {
-      filterValues = Array.from(new Set(data.map(item => item.most_common_area_bucket)))
+      filterValues = Array.from(new Set(data.map(item => item.area_bucket)))
         .sort((a, b) => {
-          const itemA = data.find(item => item.most_common_area_bucket === a);
-          const itemB = data.find(item => item.most_common_area_bucket === b);
-          return (itemA?.most_common_base_area || 0) - (itemB?.most_common_base_area || 0);
+          const itemA = data.find(item => item.area_bucket === a);
+          const itemB = data.find(item => item.area_bucket === b);
+          return (itemA?.base_area || 0) - (itemB?.base_area || 0);
         });
       filterKey = 'area';
     }
@@ -846,11 +865,14 @@ return (
           <Th isSticky>Competitor % Cheaper</Th>
           <Th isSticky>Mean Competitor Rate</Th>
           <Th isSticky>Competitor Impact</Th>
+
+          <Th isSticky>Historical Move-Ins Last 60 Days (Company by Group)</Th>
+
           <Th isSticky>Leasing Velocity Impact</Th>
           <Th isSticky>Projected Occupancy Impact</Th>
 
-          <Th isSticky>Avg Standard Rate</Th>
-          <Th isSticky>Avg Web Rate</Th>
+          <Th isSticky>Current Standard Rate</Th>
+          <Th isSticky>Current Web Rate</Th>
           <Th isSticky>Long Term Customer Average</Th>
           <Th isSticky>Recent Avg Move-In Rent</Th>
           <Th isSticky>Suggested Web Rate</Th>
