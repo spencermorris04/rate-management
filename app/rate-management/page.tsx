@@ -10,6 +10,7 @@ interface RateManagementItem {
   most_common_description: string;
   group_name: string;
   group_type: string;
+  unit_group_id: string;
   total_units: number;
   occupied_units: number;
   occupancy_rate: number;
@@ -86,6 +87,15 @@ interface GroupedData {
   mean_competitor_price: number;
   subGroups?: { [key: string]: GroupedData };
 }
+
+
+const sortAreaBuckets = (a: string, b: string) => {
+    const getBaseArea = (str: string) => {
+      const match = str.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    };
+    return getBaseArea(a) - getBaseArea(b);
+  };
 
 
 const PageContainer = styled.div`
@@ -294,12 +304,12 @@ const GroupableTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'facility' | 'type' | 'area'>('facility');
   const [editingEffectiveWebRate, setEditingEffectiveWebRate] = useState<{ [key: string]: number | null }>({});
 
-  const handleEffectiveWebRateUpdate = async (groupPath: string, value: number | null) => {
+  const handleEffectiveWebRateUpdate = async (unitGroupId: string, value: number | null) => {
     // Ensure the value is rounded to 2 decimal places
     const formattedValue = value !== null ? Number(value.toFixed(2)) : null;
   
     // Optimistic update
-    setEditingEffectiveWebRate(prev => ({ ...prev, [groupPath]: formattedValue }));
+    setEditingEffectiveWebRate(prev => ({ ...prev, [unitGroupId]: formattedValue }));
   
     try {
       const response = await fetch('/api/update-rate-management', {
@@ -309,7 +319,7 @@ const GroupableTable: React.FC = () => {
         },
         body: JSON.stringify([
           {
-            unit_group_id: groupPath,
+            unit_group_id: unitGroupId,
             suggested_web_rate: formattedValue
           }
         ]),
@@ -327,7 +337,7 @@ const GroupableTable: React.FC = () => {
     } catch (error) {
       console.error('Error updating effective web rate:', error);
       // Revert the change
-      setEditingEffectiveWebRate(prev => ({ ...prev, [groupPath]: null }));
+      setEditingEffectiveWebRate(prev => ({ ...prev, [unitGroupId]: null }));
       // Show error toast
       toast.error('Failed to update effective web rate');
     }
@@ -452,16 +462,16 @@ const GroupableTable: React.FC = () => {
         acc[key].push(item);
         return acc;
       }, {} as { [key: string]: RateManagementItem[] });
-
-      const sortedKeys = Object.keys(grouped).sort((a, b) => {
-        if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
-          return a.localeCompare(b);
-        } else if (levels[0] === 'most_common_area_bucket') {
-          return compareBaseArea(a, b);
-        }
-        return 0;
-      });
-
+    
+      let sortedKeys: string[];
+      if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
+        sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+      } else if (levels[0] === 'most_common_area_bucket') {
+        sortedKeys = Object.keys(grouped).sort(sortAreaBuckets);
+      } else {
+        sortedKeys = Object.keys(grouped);
+      }
+    
       const subGroups = sortedKeys.reduce((acc, key) => {
         acc[key] = groupData(grouped[key], levels.slice(1));
         return acc;
@@ -566,10 +576,10 @@ const GroupableTable: React.FC = () => {
   const renderGroup = (group: GroupedData, groupPath: string = '', level: number = 0): React.ReactNode => {
     if (group.items.length > 0) {
       return group.items.map((item, index) => {
-        const itemKey = `${item.facility_name}-${item.group_type}-${item.most_common_area_bucket}-${index}`;
-        const effectiveWebRate = editingEffectiveWebRate[itemKey] ?? item.suggested_web_rate ?? null;  
+        const effectiveWebRate = editingEffectiveWebRate[item.unit_group_id] ?? item.suggested_web_rate ?? null;
+  
         return (
-          <DataRow key={itemKey} even={index % 2 === 0}>
+          <DataRow key={item.unit_group_id} even={index % 2 === 0}>
           <Td level={level} isSticky>{item.group_name}</Td>
           <Td>{item.total_units}</Td>
           <Td>{item.occupied_units}</Td>
@@ -610,8 +620,8 @@ const GroupableTable: React.FC = () => {
 
           <Td>${item.average_standard_rate.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.average_web_rate.toFixed(2) ?? 'N/A'}</Td>
-          <Td>${item.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.long_term_customer_average?.toFixed(2) ?? 'N/A'}</Td>
+          <Td>${item.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
           <Td>${item.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
           <Td>
             <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -623,15 +633,15 @@ const GroupableTable: React.FC = () => {
                   const value = e.target.value;
                   const numericValue = parseFloat(value);
                   if (!isNaN(numericValue)) {
-                    setEditingEffectiveWebRate(prev => ({ ...prev, [itemKey]: numericValue }));
+                    setEditingEffectiveWebRate(prev => ({ ...prev, [item.unit_group_id]: numericValue }));
                   }
                 }}
-                onBlur={() => handleEffectiveWebRateUpdate(itemKey, effectiveWebRate)}
+                onBlur={() => handleEffectiveWebRateUpdate(item.unit_group_id, effectiveWebRate)}
                 step="0.01"
                 min="0"
               />
             </div>
-            <button onClick={() => handleEffectiveWebRateUpdate(itemKey, effectiveWebRate)}>
+            <button onClick={() => handleEffectiveWebRateUpdate(item.unit_group_id, effectiveWebRate)}>
               Send
             </button>
           </Td>
@@ -696,8 +706,8 @@ const GroupableTable: React.FC = () => {
 
               <Td>${subGroup.average_standard_rate.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.average_web_rate.toFixed(2) ?? 'N/A'}</Td>
-              <Td>${subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.long_term_customer_average.toFixed(2) ?? 'N/A'}</Td>
+              <Td>${subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? 'N/A'}</Td>
               <Td>${subGroup.suggested_web_rate?.toFixed(2) ?? 'N/A'}</Td>
               <Td>N/A</Td>
               </GroupRow>
