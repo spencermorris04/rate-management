@@ -273,28 +273,28 @@ const GroupableTable: React.FC = () => {
         const competitor_count = items.reduce((sum, item) => sum + item.competitor_count, 0);
         const competitor_impact = items.reduce((sum, item) => sum + item.competitor_impact, 0) / items.length;
         const current_period_net_rentals = items.reduce((sum, item) => sum + item.current_period_net_rentals, 0);
-        const historical_move_ins_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_last_60_days_facility, 0);
         const historical_move_ins_last_60_days_group = items.reduce((sum, item) => sum + item.historical_move_ins_last_60_days_group, 0);
-        const historical_move_ins_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_next_60_days_facility, 0);
         const historical_move_ins_next_60_days_group = items.reduce((sum, item) => sum + item.historical_move_ins_next_60_days_group, 0);
-        const historical_move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_last_60_days_facility, 0);
         const historical_move_outs_last_60_days_group = items.reduce((sum, item) => sum + item.historical_move_outs_last_60_days_group, 0);
-        const historical_move_outs_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_next_60_days_facility, 0);
         const historical_move_outs_next_60_days_group = items.reduce((sum, item) => sum + item.historical_move_outs_next_60_days_group, 0);
         const historical_net_rentals = items.reduce((sum, item) => sum + item.historical_net_rentals, 0);
-        const move_ins_last_60_days_facility = items.reduce((sum, item) => sum + item.move_ins_last_60_days_facility, 0);
         const move_ins_last_60_days_group = items.reduce((sum, item) => sum + item.move_ins_last_60_days_group, 0);
-        const move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.move_outs_last_60_days_facility, 0);
         const move_outs_last_60_days_group = items.reduce((sum, item) => sum + item.move_outs_last_60_days_group, 0);
-        const projected_move_ins_facility = items.reduce((sum, item) => sum + item.projected_move_ins_facility, 0);
         const projected_move_ins_group = items.reduce((sum, item) => sum + item.projected_move_ins_group, 0);
-        const projected_move_outs_facility = items.reduce((sum, item) => sum + item.projected_move_outs_facility, 0);
         const projected_move_outs_group = items.reduce((sum, item) => sum + item.projected_move_outs_group, 0);
         const projected_net_rentals = items.reduce((sum, item) => sum + item.projected_net_rentals, 0);
         const leasing_velocity_impact = items.reduce((sum, item) => sum + (item.leasing_velocity_impact || 0), 0) / items.length;
         const projected_occupancy_impact = items.reduce((sum, item) => sum + item.projected_occupancy_impact, 0);
         const long_term_customer_average = items.reduce((sum, item) => sum + (item.long_term_customer_average || 0), 0) / items.length;        
         const competitor_percentage_cheaper = items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
+        const historical_move_ins_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_last_60_days_facility, 0) / items.length;
+        const historical_move_ins_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_ins_next_60_days_facility, 0) / items.length;
+        const historical_move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_last_60_days_facility, 0) / items.length;
+        const historical_move_outs_next_60_days_facility = items.reduce((sum, item) => sum + item.historical_move_outs_next_60_days_facility, 0) / items.length;
+        const move_ins_last_60_days_facility = items.reduce((sum, item) => sum + item.move_ins_last_60_days_facility, 0) / items.length;
+        const move_outs_last_60_days_facility = items.reduce((sum, item) => sum + item.move_outs_last_60_days_facility, 0) / items.length;
+        const projected_move_ins_facility = items.reduce((sum, item) => sum + item.projected_move_ins_facility, 0) / items.length;
+        const projected_move_outs_facility = items.reduce((sum, item) => sum + item.projected_move_outs_facility, 0) / items.length;
 
         return { 
           items, 
@@ -371,28 +371,28 @@ const GroupableTable: React.FC = () => {
       const competitor_count = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_count, 0);
       const competitor_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.competitor_impact || 0), 0) / Object.values(subGroups).length;
       const current_period_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.current_period_net_rentals, 0);
-      const historical_move_ins_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_facility, 0);
       const historical_move_ins_last_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_group, 0);
-      const historical_move_ins_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_facility, 0);
       const historical_move_ins_next_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_group, 0);
-      const historical_move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_last_60_days_facility, 0);
       const historical_move_outs_last_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_last_60_days_group, 0);
-      const historical_move_outs_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_next_60_days_facility, 0);
       const historical_move_outs_next_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_next_60_days_group, 0);
       const historical_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.historical_net_rentals, 0);
-      const move_ins_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_facility, 0);
       const move_ins_last_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_group, 0);
-      const move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.move_outs_last_60_days_facility, 0);
       const move_outs_last_60_days_group = Object.values(subGroups).reduce((sum, group) => sum + group.move_outs_last_60_days_group, 0);
-      const projected_move_ins_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_ins_facility, 0);
       const projected_move_ins_group = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_ins_group, 0);
-      const projected_move_outs_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_outs_facility, 0);
       const projected_move_outs_group = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_outs_group, 0);
       const projected_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0);
       const long_term_customer_average = Object.values(subGroups).reduce((sum, group) => sum + (group.long_term_customer_average || 0), 0) / Object.values(subGroups).length;
       const projected_occupancy_impact = Object.values(subGroups).reduce((sum, group) => sum + group.projected_occupancy_impact, 0);
       const leasing_velocity_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.leasing_velocity_impact || 0), 0) / Object.values(subGroups).length;      
       const competitor_percentage_cheaper = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_cheaper, 0) / Object.values(subGroups).length;
+      const historical_move_ins_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_facility, 0) / Object.values(subGroups).length;
+      const historical_move_ins_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_facility, 0) / Object.values(subGroups).length;
+      const historical_move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_last_60_days_facility, 0) / Object.values(subGroups).length;
+      const historical_move_outs_next_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_outs_next_60_days_facility, 0) / Object.values(subGroups).length;
+      const move_ins_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_facility, 0) / Object.values(subGroups).length;
+      const move_outs_last_60_days_facility = Object.values(subGroups).reduce((sum, group) => sum + group.move_outs_last_60_days_facility, 0) / Object.values(subGroups).length;
+      const projected_move_ins_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_ins_facility, 0) / Object.values(subGroups).length;
+      const projected_move_outs_facility = Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_outs_facility, 0) / Object.values(subGroups).length;
 
       return { 
         items: [], 
