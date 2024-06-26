@@ -46,6 +46,7 @@ interface RateManagementItem {
   leasing_velocity_impact: number;
   competitor_percentage_cheaper: number;
   mean_competitor_price: number;
+  most_common_base_area: number;
 }
 
 interface GroupedData {
@@ -110,18 +111,41 @@ const PageContainer = styled.div`
 
 const TableWrapper = styled.div`
   width: 75vw;
-  height: 80vh;
+  height: 90vh;
   overflow: auto;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // Internet Explorer and Edge
   &::-webkit-scrollbar {
     display: none; // Chrome, Safari, and Opera
   }
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+`;
+
+const FadeBottom = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  pointer-events: none;
+`;
+
+const FadeRight = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  background: linear-gradient(to left, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  pointer-events: none;
 `;
 
 const FilterContainer = styled.div`
   width: 20vw;
-  height: 80vh;
+  height: 90vh;
   background-color: #f5f5f5;
   border-radius: 8px;
   padding: 16px;
@@ -172,18 +196,15 @@ const EffectiveWebRateInput = styled.input`
   -moz-appearance: textfield;
 `;
 
-const TableContainer = styled.div`
-  width: 100%;
-  overflow-x: auto;
-  position: relative;
-`;
-
 const Table = styled.table`
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
   font-family: Arial, sans-serif;
   background-color: white;
+  border-radius: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
 `;
 
 const SeparatorRow = styled.tr`
@@ -193,7 +214,7 @@ const SeparatorRow = styled.tr`
 
 const Th = styled.th<{ isSticky?: boolean }>`
   background-color: #f2f2f2;
-  border: 1px solid #ddd;
+  border: none;
   padding: 12px;
   text-align: left;
   ${({ isSticky }) => isSticky && `
@@ -205,7 +226,7 @@ const Th = styled.th<{ isSticky?: boolean }>`
 `;
 
 const Td = styled.td<{ level?: number; isSticky?: boolean }>`
-  border: 1px solid #ddd;
+  border: none;
   padding: 12px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
   ${({ isSticky }) => isSticky && `
@@ -467,7 +488,11 @@ const GroupableTable: React.FC = () => {
       if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
         sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
       } else if (levels[0] === 'most_common_area_bucket') {
-        sortedKeys = Object.keys(grouped).sort(sortAreaBuckets);
+        sortedKeys = Object.keys(grouped).sort((a, b) => {
+          const itemA = grouped[a][0];
+          const itemB = grouped[b][0];
+          return itemA.most_common_base_area - itemB.most_common_base_area;
+        });
       } else {
         sortedKeys = Object.keys(grouped);
       }
@@ -727,15 +752,22 @@ const GroupableTable: React.FC = () => {
   const renderFilters = () => {
     let filterValues: string[] = [];
     let filterKey: 'facility' | 'type' | 'area';
-  
+    
     if (activeTab === 'facility') {
-      filterValues = Array.from(new Set(data.map(item => item.facility_name)));
+      filterValues = Array.from(new Set(data.map(item => item.facility_name).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b));
       filterKey = 'facility';
     } else if (activeTab === 'type') {
-      filterValues = Array.from(new Set(data.map(item => item.group_type)));
+      filterValues = Array.from(new Set(data.map(item => item.group_type).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b));
       filterKey = 'type';
     } else {
-      filterValues = Array.from(new Set(data.map(item => item.most_common_area_bucket)));
+      filterValues = Array.from(new Set(data.map(item => item.most_common_area_bucket)))
+        .sort((a, b) => {
+          const itemA = data.find(item => item.most_common_area_bucket === a);
+          const itemB = data.find(item => item.most_common_area_bucket === b);
+          return (itemA?.most_common_base_area || 0) - (itemB?.most_common_base_area || 0);
+        });
       filterKey = 'area';
     }
   
