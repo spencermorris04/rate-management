@@ -137,6 +137,7 @@ const TableWrapper = styled.div`
   width: 75vw;
   height: 90vh;
   overflow: auto;
+  position: relative;
   scrollbar-width: none; // For Firefox
   -ms-overflow-style: none; // For Internet Explorer and Edge
   &::-webkit-scrollbar {
@@ -148,9 +149,9 @@ const TableWrapper = styled.div`
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(213, 184, 255, 0.18);
-  position: relative;
   opacity: 0.95;
 `;
+
 
 const FadeBottom = styled.div`
   position: absolute;
@@ -253,17 +254,17 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
   width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  position: relative; /* Make sure the position is relative */
-  color: ${({ minimized }) => (minimized ? '#000000' : '#000000')}; /* Adjust text color for contrast */
-  ${({ isSticky }) =>
+  position: relative;
+  color: ${({ minimized }) => (minimized ? '#FAC898' : '#000000')}; /* Change text color to match the background */
+  ${({ isSticky, minimized }) =>
     isSticky &&
     `
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: #e6e6e6;
+    background-color: ${minimized ? '#FAC898' : '#e6e6e6'};
   `}
-  ${({ isStickyLeft }) =>
+  ${({ isStickyLeft, minimized }) =>
     isStickyLeft &&
     `
     position: sticky;
@@ -279,7 +280,7 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
       right: -20px;
       bottom: 0;
       width: 20px;
-      background: linear-gradient(to left, transparent, #e6e6e6);
+      background: linear-gradient(to left, transparent, ${minimized ? '#FAC898' : '#e6e6e6'});
       pointer-events: none;
     }
   `}
@@ -294,14 +295,14 @@ const HeaderCell = ({ children, minimized, onToggle }: { children: React.ReactNo
   );
   
 
-const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }>`
+  const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }>`
   border: none;
   padding: 12px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
   width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  text-align: center; /* Center all columns */
+  text-align: center;
 
   ${({ isSticky }) => isSticky && `
     position: sticky;
@@ -325,7 +326,6 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
   `}
 `;
 
-
 const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
   background-color: ${({ level }) => {
     const colors = ['#e6f3ff', '#ffe6e6', '#e6ffe6', '#fff5e6'];
@@ -345,6 +345,7 @@ const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
     font-weight: bold;
   }
 `;
+
 
 const DataRow = styled.tr<{ even: boolean }>`
   background-color: ${({ even }) => (even ? '#f9f9f9' : 'white')};
@@ -1197,156 +1198,157 @@ const GroupableTable: React.FC = () => {
   const renderHeader = () => (
     <thead>
       <tr>
-        <HeaderCell minimized={hiddenColumns.has('group')} onToggle={() => toggleColumn('group')}>
+        <Th isSticky={true} isStickyLeft={true} minimized={hiddenColumns.has('group')} onClick={() => toggleColumn('group')}>
           Group
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('total_units')} onToggle={() => toggleColumn('total_units')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('total_units')} onClick={() => toggleColumn('total_units')}>
           Total Units
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('occupied_units')} onToggle={() => toggleColumn('occupied_units')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('occupied_units')} onClick={() => toggleColumn('occupied_units')}>
           Occupied Units
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('occupancy_rate')} onToggle={() => toggleColumn('occupancy_rate')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('occupancy_rate')} onClick={() => toggleColumn('occupancy_rate')}>
           Occupancy Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')} onToggle={() => toggleColumn('historical_move_ins_last_60_days_group')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')} onClick={() => toggleColumn('historical_move_ins_last_60_days_group')}>
           Historical Move-Ins Last 60 Days (Group)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')} onToggle={() => toggleColumn('historical_move_ins_last_60_days_facility')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')} onClick={() => toggleColumn('historical_move_ins_last_60_days_facility')}>
           Historical Move-Ins Last 60 Days (Facility)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')} onToggle={() => toggleColumn('historical_move_ins_last_60_days_company')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')} onClick={() => toggleColumn('historical_move_ins_last_60_days_company')}>
           Historical Move-Ins Last 60 Days (Company)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('move_ins_last_60_days_group')} onToggle={() => toggleColumn('move_ins_last_60_days_group')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_group')} onClick={() => toggleColumn('move_ins_last_60_days_group')}>
           Move-Ins Last 60 Days (Group)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('move_ins_last_60_days_facility')} onToggle={() => toggleColumn('move_ins_last_60_days_facility')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_facility')} onClick={() => toggleColumn('move_ins_last_60_days_facility')}>
           Move-Ins Last 60 Days (Facility)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('move_ins_last_60_days_company')} onToggle={() => toggleColumn('move_ins_last_60_days_company')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_company')} onClick={() => toggleColumn('move_ins_last_60_days_company')}>
           Move-Ins Last 60 Days (Company)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')} onToggle={() => toggleColumn('historical_move_ins_next_60_days_group')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')} onClick={() => toggleColumn('historical_move_ins_next_60_days_group')}>
           Historical Move-Ins Next 60 Days (Group)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')} onToggle={() => toggleColumn('historical_move_ins_next_60_days_facility')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')} onClick={() => toggleColumn('historical_move_ins_next_60_days_facility')}>
           Historical Move-Ins Next 60 Days (Facility)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')} onToggle={() => toggleColumn('historical_move_ins_next_60_days_company')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')} onClick={() => toggleColumn('historical_move_ins_next_60_days_company')}>
           Historical Move-Ins Next 60 Days (Company)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_move_ins_group')} onToggle={() => toggleColumn('projected_move_ins_group')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_ins_group')} onClick={() => toggleColumn('projected_move_ins_group')}>
           Projected Move-Ins (Group)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_move_ins_facility')} onToggle={() => toggleColumn('projected_move_ins_facility')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_ins_facility')} onClick={() => toggleColumn('projected_move_ins_facility')}>
           Projected Move-Ins (Facility)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_projected_move_ins_scaled')} onToggle={() => toggleColumn('facility_projected_move_ins_scaled')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_projected_move_ins_scaled')} onClick={() => toggleColumn('facility_projected_move_ins_scaled')}>
           Facility Projected Move-Ins (Scaled)
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('blended_move_in_projection')} onToggle={() => toggleColumn('blended_move_in_projection')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('blended_move_in_projection')} onClick={() => toggleColumn('blended_move_in_projection')}>
           Blended Move-In Projection
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')} onToggle={() => toggleColumn('facility_current_move_out_occupied_ratio_last_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('facility_current_move_out_occupied_ratio_last_60_days')}>
           Facility Current Move-Out Occupied Ratio Last 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_current_move_outs')} onToggle={() => toggleColumn('facility_current_move_outs')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_move_outs')} onClick={() => toggleColumn('facility_current_move_outs')}>
           Facility Current Move-Outs
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_current_occupied_units')} onToggle={() => toggleColumn('facility_current_occupied_units')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_occupied_units')} onClick={() => toggleColumn('facility_current_occupied_units')}>
           Facility Current Occupied Units
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')} onToggle={() => toggleColumn('facility_average_historical_move_out_occupied_ratio_last_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('facility_average_historical_move_out_occupied_ratio_last_60_days')}>
           Facility Average Historical Move-Out Occupied Ratio Last 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')} onToggle={() => toggleColumn('facility_historical_move_outs_last_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')} onClick={() => toggleColumn('facility_historical_move_outs_last_60_days')}>
           Facility Historical Move-Outs Last 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')} onToggle={() => toggleColumn('facility_historical_occupied_units_last_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')} onClick={() => toggleColumn('facility_historical_occupied_units_last_60_days')}>
           Facility Historical Occupied Units Last 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')} onToggle={() => toggleColumn('facility_facility_current_vs_historical_move_out_occupied_ratio')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')} onClick={() => toggleColumn('facility_facility_current_vs_historical_move_out_occupied_ratio')}>
           Facility Current vs Historical Move-Out Occupied Ratio
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')} onToggle={() => toggleColumn('group_current_move_out_occupied_ratio_last_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('group_current_move_out_occupied_ratio_last_60_days')}>
           Group Current Move-Out Occupied Ratio Last 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_current_move_outs')} onToggle={() => toggleColumn('group_current_move_outs')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_current_move_outs')} onClick={() => toggleColumn('group_current_move_outs')}>
           Group Current Move-Outs
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_current_occupied_units')} onToggle={() => toggleColumn('group_current_occupied_units')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_current_occupied_units')} onClick={() => toggleColumn('group_current_occupied_units')}>
           Group Current Occupied Units
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')} onToggle={() => toggleColumn('group_average_historical_move_out_occupied_ratio_next_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')} onClick={() => toggleColumn('group_average_historical_move_out_occupied_ratio_next_60_days')}>
           Group Average Historical Move-Out Occupied Ratio Next 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')} onToggle={() => toggleColumn('group_historical_move_outs_next_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')} onClick={() => toggleColumn('group_historical_move_outs_next_60_days')}>
           Group Historical Move-Outs Next 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')} onToggle={() => toggleColumn('group_historical_occupied_units_next_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')} onClick={() => toggleColumn('group_historical_occupied_units_next_60_days')}>
           Group Historical Occupied Units Next 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_move_out_occupied_ratio')} onToggle={() => toggleColumn('projected_move_out_occupied_ratio')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_out_occupied_ratio')} onClick={() => toggleColumn('projected_move_out_occupied_ratio')}>
           Projected Move-Out Occupied Ratio
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_move_outs_next_60_days')} onToggle={() => toggleColumn('projected_move_outs_next_60_days')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_outs_next_60_days')} onClick={() => toggleColumn('projected_move_outs_next_60_days')}>
           Projected Move-Outs Next 60 Days
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('historical_net_rentals')} onToggle={() => toggleColumn('historical_net_rentals')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('historical_net_rentals')} onClick={() => toggleColumn('historical_net_rentals')}>
           Historical Net Rentals
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('current_period_net_rentals')} onToggle={() => toggleColumn('current_period_net_rentals')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('current_period_net_rentals')} onClick={() => toggleColumn('current_period_net_rentals')}>
           Current Period Net Rentals
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_net_rentals')} onToggle={() => toggleColumn('projected_net_rentals')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_net_rentals')} onClick={() => toggleColumn('projected_net_rentals')}>
           Projected Net Rentals
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('competitor_count')} onToggle={() => toggleColumn('competitor_count')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('competitor_count')} onClick={() => toggleColumn('competitor_count')}>
           Competitor Count
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('competitor_percentage_cheaper')} onToggle={() => toggleColumn('competitor_percentage_cheaper')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('competitor_percentage_cheaper')} onClick={() => toggleColumn('competitor_percentage_cheaper')}>
           Competitor % Cheaper
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('competitor_percentage_more_expensive')} onToggle={() => toggleColumn('competitor_percentage_more_expensive')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('competitor_percentage_more_expensive')} onClick={() => toggleColumn('competitor_percentage_more_expensive')}>
           Competitor % More Expensive
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('mean_competitor_price')} onToggle={() => toggleColumn('mean_competitor_price')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('mean_competitor_price')} onClick={() => toggleColumn('mean_competitor_price')}>
           Mean Competitor Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('median_competitor_price')} onToggle={() => toggleColumn('median_competitor_price')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('median_competitor_price')} onClick={() => toggleColumn('median_competitor_price')}>
           Median Competitor Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('long_term_customer_average')} onToggle={() => toggleColumn('long_term_customer_average')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('long_term_customer_average')} onClick={() => toggleColumn('long_term_customer_average')}>
           Long Term Customer Average
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('recent_period_average_move_in_rent')} onToggle={() => toggleColumn('recent_period_average_move_in_rent')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('recent_period_average_move_in_rent')} onClick={() => toggleColumn('recent_period_average_move_in_rent')}>
           Recent Period Average Move-In Rent
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('average_standard_rate')} onToggle={() => toggleColumn('average_standard_rate')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('average_standard_rate')} onClick={() => toggleColumn('average_standard_rate')}>
           Current Standard Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('average_web_rate')} onToggle={() => toggleColumn('average_web_rate')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('average_web_rate')} onClick={() => toggleColumn('average_web_rate')}>
           Current Web Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('projected_occupancy_impact')} onToggle={() => toggleColumn('projected_occupancy_impact')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('projected_occupancy_impact')} onClick={() => toggleColumn('projected_occupancy_impact')}>
           Projected Occupancy Impact
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('leasing_velocity_impact')} onToggle={() => toggleColumn('leasing_velocity_impact')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('leasing_velocity_impact')} onClick={() => toggleColumn('leasing_velocity_impact')}>
           Leasing Velocity Impact
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('competitor_impact')} onToggle={() => toggleColumn('competitor_impact')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('competitor_impact')} onClick={() => toggleColumn('competitor_impact')}>
           Competitor Impact
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('suggested_web_rate')} onToggle={() => toggleColumn('suggested_web_rate')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('suggested_web_rate')} onClick={() => toggleColumn('suggested_web_rate')}>
           Suggested Web Rate
-        </HeaderCell>
-        <HeaderCell minimized={hiddenColumns.has('effective_web_rate')} onToggle={() => toggleColumn('effective_web_rate')}>
+        </Th>
+        <Th isSticky={true} minimized={hiddenColumns.has('effective_web_rate')} onClick={() => toggleColumn('effective_web_rate')}>
           Effective Web Rate
-        </HeaderCell>
+        </Th>
       </tr>
     </thead>
   );
+  
   
 
   return (
