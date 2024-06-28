@@ -246,8 +246,8 @@ const SeparatorRow = styled.tr`
   background-color: black;
 `;
 
-const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: boolean }>`
-  background-color: ${({ minimized }) => (minimized ? '#FAC898' : '#f2f2f2')};
+const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: boolean; isGroupHeader?: boolean }>`
+  background-color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'darkgrey' : minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
   padding: 12px;
   text-align: center;
@@ -255,7 +255,10 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   position: relative;
-  color: ${({ minimized }) => (minimized ? '#FAC898' : '#000000')}; /* Change text color to match the background */
+  color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'white' : minimized ? '#FAC898' : '#000000')};
+  border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')}; /* Add left border */
+  border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')}; /* Add right border */
+
   ${({ isSticky, minimized }) =>
     isSticky &&
     `
@@ -284,8 +287,17 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
       pointer-events: none;
     }
   `}
+  
+  .text-content {
+    opacity: ${({ minimized }) => (minimized ? 0 : 1)};
+    transition: opacity 0.3s;
+  }
 `;
 
+const GroupHeaderTh = styled(Th)`
+  background-color: #d9d9d9;
+  color: black;
+`;
 
 const HeaderCell = ({ children, minimized, onToggle }: { children: React.ReactNode; minimized: boolean; onToggle: () => void }) => (
     <Th minimized={minimized}>
@@ -1195,12 +1207,12 @@ const GroupableTable: React.FC = () => {
     );
   };
 
-  const renderHeader = () => (
-    <thead>
-      <tr>
-        <Th isSticky={true} isStickyLeft={true} minimized={hiddenColumns.has('group')} onClick={() => toggleColumn('group')}>
-          Group
-        </Th>
+const renderHeader = () => (
+  <thead>
+    <tr>
+      <GroupHeaderTh isSticky={true} isStickyLeft={true} minimized={hiddenColumns.has('group')} onClick={() => toggleColumn('group')} isGroupHeader={true}>
+        Group
+      </GroupHeaderTh>
         <Th isSticky={true} minimized={hiddenColumns.has('total_units')} onClick={() => toggleColumn('total_units')}>
           Total Units
         </Th>
