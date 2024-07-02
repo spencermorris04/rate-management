@@ -249,11 +249,7 @@ const SeparatorRow = styled.tr`
 const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: boolean; isGroupHeader?: boolean }>`
   background-color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'darkgrey' : minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
-<<<<<<< HEAD
   padding: 16px 12px; /* Updated padding: 12px -> 16px */
-=======
-  padding: 12px;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   text-align: center;
   width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
