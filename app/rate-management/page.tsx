@@ -116,7 +116,7 @@ interface GroupedData {
 }
 
 const COLUMN_WIDTH = 150; // in pixels
-const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.5;
+const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.4;
 
 
 
@@ -277,16 +277,10 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     position: sticky;
     left: 0;
     z-index: 11;
-<<<<<<< HEAD
-    width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
+    width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    min-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    max-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
     font-size: 18px; /* Increase font size for Group header */
-=======
-    width: ${FIRST_COLUMN_WIDTH}px;
-    min-width: ${FIRST_COLUMN_WIDTH}px;
-    max-width: ${FIRST_COLUMN_WIDTH}px;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
     &::after {
       content: '';
       position: absolute;
@@ -336,9 +330,9 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
     left: 0;
     z-index: 5;
     background-color: inherit;
-    width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
+    width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    min-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    max-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
     text-align: left; /* Align the group column to the left */
     &::after {
       content: '';
@@ -1622,7 +1616,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('effective_web_rate')}
           onClick={() => toggleColumn('effective_web_rate')}
-          title="test explanation"
+          title="The effective web rate allows you to manually override the suggested web rate. Whatever value is in this column will be the rate sent to storedge."
         >
           <span className="text-content">Effective Web Rate</span>
         </Th>
