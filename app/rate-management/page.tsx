@@ -298,7 +298,6 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
       pointer-events: none;
     }
   `}
-<<<<<<< HEAD
 
   .text-content {
     opacity: ${({ minimized }) => (minimized ? 0 : 1)};
@@ -314,40 +313,18 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     text-align: center;
     font-size: 16px;
     color: ${({ minimized }) => (minimized ? '#000' : 'transparent')}; /* Show the '+' character when minimized */
-=======
-  
-  .text-content {
-    opacity: ${({ minimized }) => (minimized ? 0 : 1)};
-    transition: opacity 0.3s;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   }
 `;
 
 const GroupHeaderTh = styled(Th)`
   background-color: #d9d9d9;
   color: black;
-<<<<<<< HEAD
   font-size: 32px; /* Increase font size for Group header */
 `;
 
 const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }>`
   border: none;
   padding: 18px 8px;
-=======
-`;
-
-const HeaderCell = ({ children, minimized, onToggle }: { children: React.ReactNode; minimized: boolean; onToggle: () => void }) => (
-    <Th minimized={minimized}>
-      {!minimized && children}
-      <HideButton onClick={onToggle}>{minimized ? '+' : '-'}</HideButton>
-    </Th>
-  );
-  
-
-  const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }>`
-  border: none;
-  padding: 12px;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
   width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
@@ -359,15 +336,9 @@ const HeaderCell = ({ children, minimized, onToggle }: { children: React.ReactNo
     left: 0;
     z-index: 5;
     background-color: inherit;
-<<<<<<< HEAD
     width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
     min-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
     max-width: ${FIRST_COLUMN_WIDTH * 1.5}px; /* Double the width for Group column */
-=======
-    width: ${FIRST_COLUMN_WIDTH}px;
-    min-width: ${FIRST_COLUMN_WIDTH}px;
-    max-width: ${FIRST_COLUMN_WIDTH}px;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
     text-align: left; /* Align the group column to the left */
     &::after {
       content: '';
@@ -412,7 +383,6 @@ const DataRow = styled.tr<{ even: boolean }>`
   }
 `;
 
-<<<<<<< HEAD
 const UpdateButton = styled.button`
   margin-left: 4px;
   padding: 2px 8px;
@@ -420,8 +390,6 @@ const UpdateButton = styled.button`
   cursor: pointer;
 `;
 
-=======
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
 const ExpandIcon = styled.span<{ isExpanded: boolean }>`
   display: inline-block;
   width: 20px;
@@ -528,52 +496,6 @@ const GroupableTable: React.FC = () => {
     'historical_move_ins_last_60_days_facility',
     'historical_move_ins_last_60_days_company',
   ]));
-<<<<<<< HEAD
-=======
-  
-  
-  
-  
-
-  const handleEffectiveWebRateUpdate = async (unitGroupId: string, value: number | null) => {
-    // Ensure the value is rounded to 2 decimal places
-    const formattedValue = value !== null ? Number(value.toFixed(2)) : null;
-
-    // Optimistic update
-    setEditingEffectiveWebRate((prev) => ({ ...prev, [unitGroupId]: formattedValue }));
-
-    try {
-      const response = await fetch('/api/update-rate-management', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([
-          {
-            unit_group_id: unitGroupId,
-            suggested_web_rate: formattedValue,
-          },
-        ]),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update effective web rate');
-      }
-
-      const result = await response.json();
-      console.log('Update result:', result);
-
-      // Show success toast
-      toast.success('Effective web rate updated successfully');
-    } catch (error) {
-      console.error('Error updating effective web rate:', error);
-      // Revert the change
-      setEditingEffectiveWebRate((prev) => ({ ...prev, [unitGroupId]: null }));
-      // Show error toast
-      toast.error('Failed to update effective web rate');
-    }
-  };
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
 
   useEffect(() => {
     fetch('/api/rate-management', { cache: 'no-store' })
@@ -604,14 +526,9 @@ const GroupableTable: React.FC = () => {
     };
 
     const groupData = (items: RateManagementItem[], levels: (keyof RateManagementItem)[]): GroupedData => {
-<<<<<<< HEAD
       // Ensure items are filtered properly
       items = items.filter((item) => item.facility_name !== null);
     
-=======
-      // Filter out items with null facility names
-      items = items.filter((item) => item.facility_name !== null);
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
       // Apply filters
       items = items.filter(
         (item) =>
@@ -619,10 +536,7 @@ const GroupableTable: React.FC = () => {
           (filters.type.size === 0 || filters.type.has(item.group_type)) &&
           (filters.area.size === 0 || filters.area.has(item.area_bucket))
       );
-<<<<<<< HEAD
       
-=======
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
       if (levels.length === 0) {
         const total_units = items.reduce((sum, item) => sum + item.total_units, 0);
         const occupied_units = items.reduce((sum, item) => sum + item.occupied_units, 0);
@@ -1046,7 +960,6 @@ const GroupableTable: React.FC = () => {
       return next;
     });
   };
-<<<<<<< HEAD
 
   const handleUpdate = async (unitGroupId: string, effectiveWebRate: string | null) => {
     if (effectiveWebRate !== null) {
@@ -1082,18 +995,11 @@ const GroupableTable: React.FC = () => {
     const value = e.target.value.replace(/^\$/, '');
     setEffectiveWebRates(prevRates => ({ ...prevRates, [unitGroupId]: value }));
   };  
-=======
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   
   const renderGroup = (group: GroupedData, groupPath: string = '', level: number = 0): React.ReactNode => {
     if (group.items.length > 0) {
       return group.items.map((item, index) => {
-<<<<<<< HEAD
         const effectiveWebRate = effectiveWebRates[item.unit_group_id] ?? (item.suggested_web_rate !== null ? item.suggested_web_rate.toFixed(2) : null);
-=======
-        const effectiveWebRate = editingEffectiveWebRate[item.unit_group_id] ?? item.suggested_web_rate ?? null;
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   
         return (
           <DataRow key={item.unit_group_id} even={index % 2 === 0}>
@@ -1160,7 +1066,6 @@ const GroupableTable: React.FC = () => {
             <Td minimized={hiddenColumns.has('competitor_impact')}>{hiddenColumns.has('competitor_impact') ? ' ' : (item.competitor_impact * 100).toFixed(2) + '%'}</Td>
   
             <Td minimized={hiddenColumns.has('suggested_web_rate')}>{hiddenColumns.has('suggested_web_rate') ? ' ' : '$' + (item.suggested_web_rate?.toFixed(2) ?? ' ')}</Td>
-<<<<<<< HEAD
             <Td minimized={hiddenColumns.has('effective_web_rate')}>
               {hiddenColumns.has('effective_web_rate') ? ' ' : (
                 <div>
@@ -1173,27 +1078,14 @@ const GroupableTable: React.FC = () => {
                 </div>
               )}
             </Td>
-=======
-            <Td minimized={hiddenColumns.has('effective_web_rate')}>{hiddenColumns.has('effective_web_rate') ? ' ' : '$' + (effectiveWebRate !== null ? effectiveWebRate.toFixed(2) : '')}</Td>
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
           </DataRow>
         );
       });
     }
-<<<<<<< HEAD
-
-=======
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
     if (group.subGroups) {
       return Object.entries(group.subGroups).map(([key, subGroup], index) => {
         const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
         const isExpanded = expandedGroups.has(newGroupPath);
-<<<<<<< HEAD
-
-=======
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
         return (
           <React.Fragment key={newGroupPath}>
             {level === 0 && index > 0 && <SeparatorRow />}
@@ -1205,7 +1097,6 @@ const GroupableTable: React.FC = () => {
               <Td minimized={hiddenColumns.has('total_units')}>{hiddenColumns.has('total_units') ? ' ' : subGroup.total_units}</Td>
               <Td minimized={hiddenColumns.has('occupied_units')}>{hiddenColumns.has('occupied_units') ? ' ' : subGroup.occupied_units}</Td>
               <Td minimized={hiddenColumns.has('occupancy_rate')}>{hiddenColumns.has('occupancy_rate') ? ' ' : (subGroup.occupancy_rate * 100).toFixed(2) + '%'}</Td>
-<<<<<<< HEAD
 
               <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}>{hiddenColumns.has('historical_move_ins_last_60_days_group') ? ' ' : subGroup.historical_move_ins_last_60_days_group.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}>{hiddenColumns.has('historical_move_ins_last_60_days_facility') ? ' ' : subGroup.historical_move_ins_last_60_days_facility.toFixed(2)}</Td>
@@ -1219,26 +1110,10 @@ const GroupableTable: React.FC = () => {
               <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}>{hiddenColumns.has('historical_move_ins_next_60_days_facility') ? ' ' : subGroup.historical_move_ins_next_60_days_facility.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}>{hiddenColumns.has('historical_move_ins_next_60_days_company') ? ' ' : subGroup.historical_move_ins_next_60_days_company.toFixed(2)}</Td>
 
-=======
-  
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}>{hiddenColumns.has('historical_move_ins_last_60_days_group') ? ' ' : subGroup.historical_move_ins_last_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}>{hiddenColumns.has('historical_move_ins_last_60_days_facility') ? ' ' : subGroup.historical_move_ins_last_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')}>{hiddenColumns.has('historical_move_ins_last_60_days_company') ? ' ' : subGroup.historical_move_ins_last_60_days_company.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_group')}>{hiddenColumns.has('move_ins_last_60_days_group') ? ' ' : subGroup.move_ins_last_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_facility')}>{hiddenColumns.has('move_ins_last_60_days_facility') ? ' ' : subGroup.move_ins_last_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_company')}>{hiddenColumns.has('move_ins_last_60_days_company') ? ' ' : subGroup.move_ins_last_60_days_company.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')}>{hiddenColumns.has('historical_move_ins_next_60_days_group') ? ' ' : subGroup.historical_move_ins_next_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}>{hiddenColumns.has('historical_move_ins_next_60_days_facility') ? ' ' : subGroup.historical_move_ins_next_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}>{hiddenColumns.has('historical_move_ins_next_60_days_company') ? ' ' : subGroup.historical_move_ins_next_60_days_company.toFixed(2)}</Td>
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
               <Td minimized={hiddenColumns.has('projected_move_ins_group')}>{hiddenColumns.has('projected_move_ins_group') ? ' ' : subGroup.projected_move_ins_group.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('projected_move_ins_facility')}>{hiddenColumns.has('projected_move_ins_facility') ? ' ' : subGroup.projected_move_ins_facility.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('facility_projected_move_ins_scaled')}>{hiddenColumns.has('facility_projected_move_ins_scaled') ? ' ' : subGroup.facility_projected_move_ins_scaled.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('blended_move_in_projection')}>{hiddenColumns.has('blended_move_in_projection') ? ' ' : subGroup.blended_move_in_projection.toFixed(2)}</Td>
-<<<<<<< HEAD
 
               <Td minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.facility_current_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('facility_current_move_outs')}>{hiddenColumns.has('facility_current_move_outs') ? ' ' : subGroup.facility_current_move_outs}</Td>
@@ -1265,61 +1140,20 @@ const GroupableTable: React.FC = () => {
               <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : subGroup.current_period_net_rentals?.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : subGroup.projected_net_rentals?.toFixed(2)}</Td>
 
-=======
-  
-              <Td minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.facility_current_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('facility_current_move_outs')}>{hiddenColumns.has('facility_current_move_outs') ? ' ' : subGroup.facility_current_move_outs}</Td>
-              <Td minimized={hiddenColumns.has('facility_current_occupied_units')}>{hiddenColumns.has('facility_current_occupied_units') ? ' ' : subGroup.facility_current_occupied_units}</Td>
-  
-              <Td minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.facility_average_historical_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')}>{hiddenColumns.has('facility_historical_move_outs_last_60_days') ? ' ' : subGroup.facility_historical_move_outs_last_60_days.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')}>{hiddenColumns.has('facility_historical_occupied_units_last_60_days') ? ' ' : subGroup.facility_historical_occupied_units_last_60_days.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')}>{hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio') ? ' ' : subGroup.facility_facility_current_vs_historical_move_out_occupied_ratio?.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.group_current_move_out_occupied_ratio_last_60_days * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('group_current_move_outs')}>{hiddenColumns.has('group_current_move_outs') ? ' ' : subGroup.group_current_move_outs}</Td>
-              <Td minimized={hiddenColumns.has('group_current_occupied_units')}>{hiddenColumns.has('group_current_occupied_units') ? ' ' : subGroup.group_current_occupied_units}</Td>
-  
-              <Td minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')}>{hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days') ? ' ' : (subGroup.group_average_historical_move_out_occupied_ratio_next_60_days * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')}>{hiddenColumns.has('group_historical_move_outs_next_60_days') ? ' ' : subGroup.group_historical_move_outs_next_60_days?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')}>{hiddenColumns.has('group_historical_occupied_units_next_60_days') ? ' ' : subGroup.group_historical_occupied_units_next_60_days?.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('projected_move_out_occupied_ratio')}>{hiddenColumns.has('projected_move_out_occupied_ratio') ? ' ' : (subGroup.projected_move_out_occupied_ratio * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('projected_move_outs_next_60_days')}>{hiddenColumns.has('projected_move_outs_next_60_days') ? ' ' : subGroup.projected_move_outs_next_60_days?.toFixed(2)}</Td>
-  
-              <Td minimized={hiddenColumns.has('historical_net_rentals')}>{hiddenColumns.has('historical_net_rentals') ? ' ' : subGroup.historical_net_rentals?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : subGroup.current_period_net_rentals?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : subGroup.projected_net_rentals?.toFixed(2)}</Td>
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
               <Td minimized={hiddenColumns.has('competitor_count')}>{hiddenColumns.has('competitor_count') ? ' ' : subGroup.competitor_count}</Td>
               <Td minimized={hiddenColumns.has('competitor_percentage_cheaper')}>{hiddenColumns.has('competitor_percentage_cheaper') ? ' ' : (subGroup.competitor_percentage_cheaper * 100)?.toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('competitor_percentage_more_expensive')}>{hiddenColumns.has('competitor_percentage_more_expensive') ? ' ' : (subGroup.competitor_percentage_more_expensive * 100)?.toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('mean_competitor_price')}>{hiddenColumns.has('mean_competitor_price') ? ' ' : '$' + subGroup.mean_competitor_price.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('median_competitor_price')}>{hiddenColumns.has('median_competitor_price') ? ' ' : '$' + subGroup.median_competitor_price.toFixed(2)}</Td>
-<<<<<<< HEAD
-
-=======
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
               <Td minimized={hiddenColumns.has('long_term_customer_average')}>{hiddenColumns.has('long_term_customer_average') ? ' ' : '$' + (subGroup.long_term_customer_average?.toFixed(2) ?? ' ')}</Td>
               <Td minimized={hiddenColumns.has('recent_period_average_move_in_rent')}>{hiddenColumns.has('recent_period_average_move_in_rent') ? ' ' : '$' + (subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? ' ')}</Td>
               <Td minimized={hiddenColumns.has('average_standard_rate')}>{hiddenColumns.has('average_standard_rate') ? ' ' : '$' + subGroup.average_standard_rate.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('average_web_rate')}>{hiddenColumns.has('average_web_rate') ? ' ' : '$' + subGroup.average_web_rate.toFixed(2)}</Td>
-<<<<<<< HEAD
 
               <Td minimized={hiddenColumns.has('projected_occupancy_impact')}>{hiddenColumns.has('projected_occupancy_impact') ? ' ' : (subGroup.projected_occupancy_impact * 100).toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('leasing_velocity_impact')}>{hiddenColumns.has('leasing_velocity_impact') ? ' ' : (subGroup.leasing_velocity_impact * 100).toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('competitor_impact')}>{hiddenColumns.has('competitor_impact') ? ' ' : (subGroup.competitor_impact * 100).toFixed(2) + '%'}</Td>
 
-=======
-  
-              <Td minimized={hiddenColumns.has('projected_occupancy_impact')}>{hiddenColumns.has('projected_occupancy_impact') ? ' ' : (subGroup.projected_occupancy_impact * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('leasing_velocity_impact')}>{hiddenColumns.has('leasing_velocity_impact') ? ' ' : (subGroup.leasing_velocity_impact * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('competitor_impact')}>{hiddenColumns.has('competitor_impact') ? ' ' : (subGroup.competitor_impact * 100).toFixed(2) + '%'}</Td>
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
               <Td minimized={hiddenColumns.has('suggested_web_rate')}>{hiddenColumns.has('suggested_web_rate') ? ' ' : '$' + (subGroup.suggested_web_rate?.toFixed(2) ?? ' ')}</Td>
             </GroupRow>
             {isExpanded && renderGroup(subGroup, newGroupPath, level + 1)}
@@ -1327,16 +1161,9 @@ const GroupableTable: React.FC = () => {
         );
       });
     }
-<<<<<<< HEAD
 
     return null;
   };
-=======
-  
-    return null;
-  };
-    
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -1402,7 +1229,6 @@ const GroupableTable: React.FC = () => {
     );
   };
 
-<<<<<<< HEAD
   const renderHeader = () => (
     <thead>
       <tr>
@@ -1799,166 +1625,10 @@ const GroupableTable: React.FC = () => {
           title="test explanation"
         >
           <span className="text-content">Effective Web Rate</span>
-=======
-const renderHeader = () => (
-  <thead>
-    <tr>
-      <GroupHeaderTh isSticky={true} isStickyLeft={true} minimized={hiddenColumns.has('group')} onClick={() => toggleColumn('group')} isGroupHeader={true}>
-        Group
-      </GroupHeaderTh>
-        <Th isSticky={true} minimized={hiddenColumns.has('total_units')} onClick={() => toggleColumn('total_units')}>
-          Total Units
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('occupied_units')} onClick={() => toggleColumn('occupied_units')}>
-          Occupied Units
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('occupancy_rate')} onClick={() => toggleColumn('occupancy_rate')}>
-          Occupancy Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')} onClick={() => toggleColumn('historical_move_ins_last_60_days_group')}>
-          Historical Move-Ins Last 60 Days (Group)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')} onClick={() => toggleColumn('historical_move_ins_last_60_days_facility')}>
-          Historical Move-Ins Last 60 Days (Facility)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')} onClick={() => toggleColumn('historical_move_ins_last_60_days_company')}>
-          Historical Move-Ins Last 60 Days (Company)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_group')} onClick={() => toggleColumn('move_ins_last_60_days_group')}>
-          Move-Ins Last 60 Days (Group)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_facility')} onClick={() => toggleColumn('move_ins_last_60_days_facility')}>
-          Move-Ins Last 60 Days (Facility)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('move_ins_last_60_days_company')} onClick={() => toggleColumn('move_ins_last_60_days_company')}>
-          Move-Ins Last 60 Days (Company)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')} onClick={() => toggleColumn('historical_move_ins_next_60_days_group')}>
-          Historical Move-Ins Next 60 Days (Group)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')} onClick={() => toggleColumn('historical_move_ins_next_60_days_facility')}>
-          Historical Move-Ins Next 60 Days (Facility)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')} onClick={() => toggleColumn('historical_move_ins_next_60_days_company')}>
-          Historical Move-Ins Next 60 Days (Company)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_ins_group')} onClick={() => toggleColumn('projected_move_ins_group')}>
-          Projected Move-Ins (Group)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_ins_facility')} onClick={() => toggleColumn('projected_move_ins_facility')}>
-          Projected Move-Ins (Facility)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_projected_move_ins_scaled')} onClick={() => toggleColumn('facility_projected_move_ins_scaled')}>
-          Facility Projected Move-Ins (Scaled)
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('blended_move_in_projection')} onClick={() => toggleColumn('blended_move_in_projection')}>
-          Blended Move-In Projection
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('facility_current_move_out_occupied_ratio_last_60_days')}>
-          Facility Current Move-Out Occupied Ratio Last 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_move_outs')} onClick={() => toggleColumn('facility_current_move_outs')}>
-          Facility Current Move-Outs
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_current_occupied_units')} onClick={() => toggleColumn('facility_current_occupied_units')}>
-          Facility Current Occupied Units
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('facility_average_historical_move_out_occupied_ratio_last_60_days')}>
-          Facility Average Historical Move-Out Occupied Ratio Last 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')} onClick={() => toggleColumn('facility_historical_move_outs_last_60_days')}>
-          Facility Historical Move-Outs Last 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')} onClick={() => toggleColumn('facility_historical_occupied_units_last_60_days')}>
-          Facility Historical Occupied Units Last 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')} onClick={() => toggleColumn('facility_facility_current_vs_historical_move_out_occupied_ratio')}>
-          Facility Current vs Historical Move-Out Occupied Ratio
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')} onClick={() => toggleColumn('group_current_move_out_occupied_ratio_last_60_days')}>
-          Group Current Move-Out Occupied Ratio Last 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_current_move_outs')} onClick={() => toggleColumn('group_current_move_outs')}>
-          Group Current Move-Outs
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_current_occupied_units')} onClick={() => toggleColumn('group_current_occupied_units')}>
-          Group Current Occupied Units
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')} onClick={() => toggleColumn('group_average_historical_move_out_occupied_ratio_next_60_days')}>
-          Group Average Historical Move-Out Occupied Ratio Next 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')} onClick={() => toggleColumn('group_historical_move_outs_next_60_days')}>
-          Group Historical Move-Outs Next 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')} onClick={() => toggleColumn('group_historical_occupied_units_next_60_days')}>
-          Group Historical Occupied Units Next 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_out_occupied_ratio')} onClick={() => toggleColumn('projected_move_out_occupied_ratio')}>
-          Projected Move-Out Occupied Ratio
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_move_outs_next_60_days')} onClick={() => toggleColumn('projected_move_outs_next_60_days')}>
-          Projected Move-Outs Next 60 Days
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('historical_net_rentals')} onClick={() => toggleColumn('historical_net_rentals')}>
-          Historical Net Rentals
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('current_period_net_rentals')} onClick={() => toggleColumn('current_period_net_rentals')}>
-          Current Period Net Rentals
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_net_rentals')} onClick={() => toggleColumn('projected_net_rentals')}>
-          Projected Net Rentals
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('competitor_count')} onClick={() => toggleColumn('competitor_count')}>
-          Competitor Count
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('competitor_percentage_cheaper')} onClick={() => toggleColumn('competitor_percentage_cheaper')}>
-          Competitor % Cheaper
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('competitor_percentage_more_expensive')} onClick={() => toggleColumn('competitor_percentage_more_expensive')}>
-          Competitor % More Expensive
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('mean_competitor_price')} onClick={() => toggleColumn('mean_competitor_price')}>
-          Mean Competitor Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('median_competitor_price')} onClick={() => toggleColumn('median_competitor_price')}>
-          Median Competitor Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('long_term_customer_average')} onClick={() => toggleColumn('long_term_customer_average')}>
-          Long Term Customer Average
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('recent_period_average_move_in_rent')} onClick={() => toggleColumn('recent_period_average_move_in_rent')}>
-          Recent Period Average Move-In Rent
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('average_standard_rate')} onClick={() => toggleColumn('average_standard_rate')}>
-          Current Standard Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('average_web_rate')} onClick={() => toggleColumn('average_web_rate')}>
-          Current Web Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('projected_occupancy_impact')} onClick={() => toggleColumn('projected_occupancy_impact')}>
-          Projected Occupancy Impact
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('leasing_velocity_impact')} onClick={() => toggleColumn('leasing_velocity_impact')}>
-          Leasing Velocity Impact
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('competitor_impact')} onClick={() => toggleColumn('competitor_impact')}>
-          Competitor Impact
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('suggested_web_rate')} onClick={() => toggleColumn('suggested_web_rate')}>
-          Suggested Web Rate
-        </Th>
-        <Th isSticky={true} minimized={hiddenColumns.has('effective_web_rate')} onClick={() => toggleColumn('effective_web_rate')}>
-          Effective Web Rate
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
         </Th>
       </tr>
     </thead>
   );
-<<<<<<< HEAD
-=======
-  
-  
->>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
 
   return (
     <PageContainer>
