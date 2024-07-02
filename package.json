@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
+  "name": "dyo-admin",
+=======
   "name": "rate-management-site",
+>>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +13,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+<<<<<<< HEAD
+    "next": "14.2.4",
+    "react": "^18",
+    "react-dom": "^18",
+=======
     "@infinite-table/infinite-react": "^4.1.0",
     "@tanstack/react-table": "^8.17.3",
     "ag-grid-community": "^31.3.2",
@@ -17,6 +26,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-select": "^5.8.0",
+>>>>>>> 05d0832867e788a89b59fa390c1a2b5aac578621
     "react-toastify": "^10.0.5",
     "styled-components": "^6.1.11"
   },
