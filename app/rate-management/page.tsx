@@ -1228,7 +1228,7 @@ const GroupableTable: React.FC = () => {
           minimized={hiddenColumns.has('group')}
           onClick={() => toggleColumn('group')}
           isGroupHeader={true}
-          title="test explanation"
+          title="This is the group row that contains row groups for facility name, group type (climate, non-climate, or parking/non-storage), and area bucket."
         >
           <span className="text-content">Group</span>
         </GroupHeaderTh>
@@ -1332,7 +1332,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_move_ins_group')}
           onClick={() => toggleColumn('projected_move_ins_group')}
-          title="The projected number of move-ins for the group in the next 60 days, based on historical trends and current data."
+          title="The projected number of move-ins for the group in the next 60 days, based on historical trends and current data. Specifically, move-ins last 60 days (group) / historical move-ins last 60 days (group) * historical move-ins next 60 days (group)."
         >
           <span className="text-content">Projected Move-Ins (Group)</span>
         </Th>
@@ -1604,7 +1604,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('suggested_web_rate')}
           onClick={() => toggleColumn('suggested_web_rate')}
-          title="The suggested web rate combines the impacts from leasing velocity, projected occupancy, and competitor pricing to adjust the unit group's base rate. The base rate is derived from the most relevant available metric: recent period average move-in rent, long-term customer average, or average web rate. The suggested web rate formula is base_rate * (1 + leasing_velocity_impact) * (1 + projected_occupancy_impact) * (1 + competitor_impact), which multiplies the base rate by factors reflecting each impact. This ensures the suggested web rate dynamically adjusts to current market conditions and performance metrics, providing an optimized pricing strategy."
+          title="The suggested web rate combines the impacts from leasing velocity, projected occupancy, and competitor pricing to adjust the unit group's base rate. The base rate is derived from the most relevant available metric: recent period average move-in rent, long-term customer average, or current web rate. The suggested web rate formula is base_rate * (1 + leasing_velocity_impact) * (1 + projected_occupancy_impact) * (1 + competitor_impact), which multiplies the base rate by factors reflecting each impact. This ensures the suggested web rate dynamically adjusts to current market conditions and performance metrics, providing an optimized pricing strategy."
         >
           <span className="text-content">Suggested Web Rate</span>
         </Th>
