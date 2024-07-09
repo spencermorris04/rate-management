@@ -116,7 +116,7 @@ interface GroupedData {
 }
 
 const COLUMN_WIDTH = 150; // in pixels
-const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.4;
+const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.48;
 
 
 
@@ -273,9 +273,9 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     position: sticky;
     left: 0;
     z-index: 11;
-    width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
+    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
+    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
     font-size: 18px; /* Increase font size for Group header */
     &::after {
       content: '';
@@ -326,9 +326,9 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
     left: 0;
     z-index: 5;
     background-color: inherit;
-    width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.4}px; /* Double the width for Group column */
+    width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
+    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
+    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
     text-align: left; /* Align the group column to the left */
     &::after {
       content: '';
