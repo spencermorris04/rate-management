@@ -1252,7 +1252,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('occupancy_rate')}
           onClick={() => toggleColumn('occupancy_rate')}
-          title="The ratio of occupied units to total units in a particular group."
+          title="The ratio of occupied units to total units in a particular group. Formula: Occupancy Rate = Occupied Units / Total Units."
         >
           <span className="text-content">Occupancy Rate</span>
         </Th>
@@ -1260,7 +1260,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}
           onClick={() => toggleColumn('historical_move_ins_last_60_days_group')}
-          title="The average number of move-ins for the group in the last 60 days, calculated over the past four years."
+          title="The average number of move-ins for the group in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Group) = Average(move-ins for last 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Last 60 Days (Group)</span>
         </Th>
@@ -1268,7 +1268,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}
           onClick={() => toggleColumn('historical_move_ins_last_60_days_facility')}
-          title="The average number of move-ins for the facility in the last 60 days, calculated over the past four years."
+          title="The average number of move-ins for the facility in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Facility) = Average(move-ins for last 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Last 60 Days (Facility)</span>
         </Th>
@@ -1276,7 +1276,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')}
           onClick={() => toggleColumn('historical_move_ins_last_60_days_company')}
-          title="The average number of move-ins for the area bucket and group type across the company in the last 60 days, calculated over the past four years."
+          title="The average number of move-ins for the company in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Company) = Average(move-ins for last 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Last 60 Days (Company)</span>
         </Th>
@@ -1300,7 +1300,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('move_ins_last_60_days_company')}
           onClick={() => toggleColumn('move_ins_last_60_days_company')}
-          title="The actual number of move-ins for the area bucket and group type across the company in the last 60 days."
+          title="The actual number of move-ins for the company in the last 60 days."
         >
           <span className="text-content">Move-Ins Last 60 Days (Company)</span>
         </Th>
@@ -1308,7 +1308,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')}
           onClick={() => toggleColumn('historical_move_ins_next_60_days_group')}
-          title="The average number of move-ins for the group in the next 60 days, calculated over the past four years."
+          title="The average number of move-ins for the group in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Group) = Average(move-ins for next 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Next 60 Days (Group)</span>
         </Th>
@@ -1316,7 +1316,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}
           onClick={() => toggleColumn('historical_move_ins_next_60_days_facility')}
-          title="The average number of move-ins for the facility in the next 60 days, calculated over the past four years."
+          title="The average number of move-ins for the facility in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Facility) = Average(move-ins for next 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Next 60 Days (Facility)</span>
         </Th>
@@ -1324,7 +1324,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}
           onClick={() => toggleColumn('historical_move_ins_next_60_days_company')}
-          title="The average number of move-ins for the area bucket and group type across the company in the next 60 days, calculated over the past four years."
+          title="The average number of move-ins for the company in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Company) = Average(move-ins for next 60 days over the past four years)."
         >
           <span className="text-content">Historical Move-Ins Next 60 Days (Company)</span>
         </Th>
@@ -1332,7 +1332,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_move_ins_group')}
           onClick={() => toggleColumn('projected_move_ins_group')}
-          title="The projected number of move-ins for the group in the next 60 days, based on historical trends and current data. Specifically, move-ins last 60 days (group) / historical move-ins last 60 days (group) * historical move-ins next 60 days (group)."
+          title="The projected number of move-ins for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Group) = Move-Ins Last 60 Days (Group) / Historical Move-Ins Last 60 Days (Group) * Historical Move-Ins Next 60 Days (Group)."
         >
           <span className="text-content">Projected Move-Ins (Group)</span>
         </Th>
@@ -1340,7 +1340,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_move_ins_facility')}
           onClick={() => toggleColumn('projected_move_ins_facility')}
-          title="The projected number of move-ins for the facility in the next 60 days, based on historical trends and current data."
+          title="The projected number of move-ins for the facility in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Facility) = Move-Ins Last 60 Days (Facility) / Historical Move-Ins Last 60 Days (Facility) * Historical Move-Ins Next 60 Days (Facility)."
         >
           <span className="text-content">Projected Move-Ins (Facility)</span>
         </Th>
@@ -1348,7 +1348,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_projected_move_ins_scaled')}
           onClick={() => toggleColumn('facility_projected_move_ins_scaled')}
-          title="The projected number of move-ins for the facility, scaled to account for the total units in the group."
+          title="The projected number of move-ins for the facility, scaled to account for the total units in the group. Formula: Facility Projected Move-Ins (Scaled) = Projected Move-Ins (Facility) * (Total Units (Group) / Total Units (Facility))."
         >
           <span className="text-content">Facility Projected Move-Ins (Scaled)</span>
         </Th>
@@ -1356,7 +1356,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('blended_move_in_projection')}
           onClick={() => toggleColumn('blended_move_in_projection')}
-          title="The average of the projected move-ins for the group and the scaled projected move-ins for the facility."
+          title="The average of the projected move-ins for the group and the scaled projected move-ins for the facility. Formula: Blended Move-In Projection = (Projected Move-Ins (Group) + Facility Projected Move-Ins (Scaled)) / 2."
         >
           <span className="text-content">Blended Move-In Projection</span>
         </Th>
@@ -1364,7 +1364,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}
           onClick={() => toggleColumn('facility_current_move_out_occupied_ratio_last_60_days')}
-          title="The ratio of move-outs to occupied units for the facility in the last 60 days."
+          title="The ratio of move-outs to occupied units for the facility in the last 60 days. Formula: Facility Current Move-Out Occupied Ratio Last 60 Days = Facility Current Move-Outs / Facility Current Occupied Units."
         >
           <span className="text-content">Facility Current Move-Out Occupied Ratio Last 60 Days</span>
         </Th>
@@ -1388,7 +1388,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')}
           onClick={() => toggleColumn('facility_average_historical_move_out_occupied_ratio_last_60_days')}
-          title="The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years."
+          title="The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years. Formula: historical average(move-outs last 60 days / occupied units this date)."
         >
           <span className="text-content">Facility Average Historical Move-Out Occupied Ratio Last 60 Days</span>
         </Th>
@@ -1396,7 +1396,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')}
           onClick={() => toggleColumn('facility_historical_move_outs_last_60_days')}
-          title="The average number of move-outs for the facility in the last 60 days, calculated over the past four years."
+          title="The average number of move-outs for the facility in the last 60 days, calculated over the past four years. Formula: Average(move-outs for the last 60 days over the past four years)."
         >
           <span className="text-content">Facility Historical Move-Outs Last 60 Days</span>
         </Th>
@@ -1404,7 +1404,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')}
           onClick={() => toggleColumn('facility_historical_occupied_units_last_60_days')}
-          title="The average number of occupied units in the facility in the last 60 days, calculated over the past four years."
+          title="The average number of occupied units in the facility for the last 60 days, calculated over the past four years. Formula: Facility Historical Occupied Units Last 60 Days = Average(occupied units for the last 60 days over the past four years)."
         >
           <span className="text-content">Facility Historical Occupied Units Last 60 Days</span>
         </Th>
@@ -1412,7 +1412,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')}
           onClick={() => toggleColumn('facility_facility_current_vs_historical_move_out_occupied_ratio')}
-          title="The ratio of the current move-out occupied ratio to the historical average for the facility."
+          title="The ratio of the current move-out occupied ratio to the historical average for the facility. Formula: Facility Current vs Historical Move-Out Occupied Ratio = Current Move-Out Occupied Ratio / Historical Move-Out Occupied Ratio."
         >
           <span className="text-content">Facility Current vs Historical Move-Out Occupied Ratio</span>
         </Th>
@@ -1420,7 +1420,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')}
           onClick={() => toggleColumn('group_current_move_out_occupied_ratio_last_60_days')}
-          title="The ratio of move-outs to occupied units for the group in the last 60 days."
+          title="The ratio of move-outs to occupied units for the group in the last 60 days. Formula: Group Current Move-Out Occupied Ratio Last 60 Days = Group Current Move-Outs / Group Current Occupied Units."
         >
           <span className="text-content">Group Current Move-Out Occupied Ratio Last 60 Days</span>
         </Th>
@@ -1444,7 +1444,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')}
           onClick={() => toggleColumn('group_average_historical_move_out_occupied_ratio_next_60_days')}
-          title="The average ratio of move-outs to occupied units for the group in the next 60 days, calculated over the past four years."
+          title="The average ratio of move-outs to occupied units for the group in the next 60 days, calculated over the past four years. Formula: historical average(move-outs next 60 days / occupied units in 60 days)."
         >
           <span className="text-content">Group Average Historical Move-Out Occupied Ratio Next 60 Days</span>
         </Th>
@@ -1452,7 +1452,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')}
           onClick={() => toggleColumn('group_historical_move_outs_next_60_days')}
-          title="The average number of move-outs for the group in the next 60 days, calculated over the past four years."
+          title="The average number of move-outs for the group in the next 60 days, calculated over the past four years. Formula: Average(move-outs for the next 60 days over the past four years)."
         >
           <span className="text-content">Group Historical Move-Outs Next 60 Days</span>
         </Th>
@@ -1460,7 +1460,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')}
           onClick={() => toggleColumn('group_historical_occupied_units_next_60_days')}
-          title="The average number of occupied units in the group in the next 60 days, calculated over the past four years."
+          title="The average number of occupied units in the group for the next 60 days, calculated over the past four years. Formula: Average(occupied units for the next 60 days over the past four years)."
         >
           <span className="text-content">Group Historical Occupied Units Next 60 Days</span>
         </Th>
@@ -1468,7 +1468,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_move_out_occupied_ratio')}
           onClick={() => toggleColumn('projected_move_out_occupied_ratio')}
-          title="The projected ratio of move-outs to occupied units in the next 60 days."
+          title="The projected ratio of move-outs to occupied units in the next 60 days. Formula: (Company Move-Outs Last 60 Days / Company Average Historical Move-Outs Last 60 Days) * Group Average Historical Move-Out Occupied Ratio Next 60 Days."
         >
           <span className="text-content">Projected Move-Out Occupied Ratio</span>
         </Th>
@@ -1476,7 +1476,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_move_outs_next_60_days')}
           onClick={() => toggleColumn('projected_move_outs_next_60_days')}
-          title="The projected number of move-outs in the next 60 days."
+          title="The projected number of move-outs in the next 60 days. Formula: Projected Move-Outs Next 60 Days = Projected Move-Out Occupied Ratio * Group Current Occupied Units."
         >
           <span className="text-content">Projected Move-Outs Next 60 Days</span>
         </Th>
@@ -1484,7 +1484,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('historical_net_rentals')}
           onClick={() => toggleColumn('historical_net_rentals')}
-          title="The difference between historical move-ins and move-outs for the group in the last 60 days."
+          title="The difference between historical move-ins and move-outs for the group in the last 60 days. Formula: Historical Net Rentals = Historical Move-Ins Last 60 Days (Group) - Historical Move-Outs Last 60 Days (Group)."
         >
           <span className="text-content">Historical Net Rentals</span>
         </Th>
@@ -1492,7 +1492,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('current_period_net_rentals')}
           onClick={() => toggleColumn('current_period_net_rentals')}
-          title="The difference between actual move-ins and move-outs for the group in the last 60 days."
+          title="The difference between actual move-ins and move-outs for the group in the last 60 days. Formula: Current Period Net Rentals = Move-Ins Last 60 Days (Group) - Group Current Move-Outs."
         >
           <span className="text-content">Current Period Net Rentals</span>
         </Th>
@@ -1500,7 +1500,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_net_rentals')}
           onClick={() => toggleColumn('projected_net_rentals')}
-          title="The projected difference between move-ins and move-outs for the group in the next 60 days."
+          title="The projected difference between move-ins and move-outs for the group in the next 60 days. Formula: Projected Net Rentals = Blended Move-In Projection - Projected Move-Outs Next 60 Days."
         >
           <span className="text-content">Projected Net Rentals</span>
         </Th>
@@ -1516,7 +1516,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('competitor_percentage_cheaper')}
           onClick={() => toggleColumn('competitor_percentage_cheaper')}
-          title="The percentage of competitors with lower prices than the current web rate for the group."
+          title="The percentage of competitors with lower prices than the current web rate for the group. Formula: Competitor Percentage Cheaper = Number of competitors with lower prices / Competitor Count."
         >
           <span className="text-content">Competitor % Cheaper</span>
         </Th>
@@ -1524,7 +1524,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('competitor_percentage_more_expensive')}
           onClick={() => toggleColumn('competitor_percentage_more_expensive')}
-          title="The percentage of competitors with higher prices than the current web rate for the group."
+          title="The percentage of competitors with higher prices than the current web rate for the group. Formula: Competitor Percentage More Expensive = Number of competitors with higher prices / Competitor Count."
         >
           <span className="text-content">Competitor % More Expensive</span>
         </Th>
@@ -1532,7 +1532,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('mean_competitor_price')}
           onClick={() => toggleColumn('mean_competitor_price')}
-          title="The average price of competitors for the group."
+          title="The average price of competitors for the group. Formula: Mean Competitor Price = Average(price of competitors for the group)."
         >
           <span className="text-content">Mean Competitor Rate</span>
         </Th>
@@ -1540,7 +1540,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('median_competitor_price')}
           onClick={() => toggleColumn('median_competitor_price')}
-          title="The median price of competitors for the group."
+          title="The median price of competitors for the group. Formula: Median Competitor Price = Median(price of competitors for the group)."
         >
           <span className="text-content">Median Competitor Rate</span>
         </Th>
@@ -1548,7 +1548,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('long_term_customer_average')}
           onClick={() => toggleColumn('long_term_customer_average')}
-          title="The average rate paid by customers who have been in the units for more than a year."
+          title="The average rate paid by customers who have been in the units for more than a year. Formula: Long Term Customer Average = Average(rate paid by customers who have been in the units for more than a year)."
         >
           <span className="text-content">Long Term Customer Average</span>
         </Th>
@@ -1556,7 +1556,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('recent_period_average_move_in_rent')}
           onClick={() => toggleColumn('recent_period_average_move_in_rent')}
-          title="The average rent for recent move-ins in the last 60 days."
+          title="The average rent for recent move-ins in the last 60 days. Formula: Recent Period Average Move-In Rent = Total rent for recent move-ins / Total square feet for recent move-ins * Average base area."
         >
           <span className="text-content">Recent Period Average Move-In Rent</span>
         </Th>
@@ -1564,7 +1564,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('average_standard_rate')}
           onClick={() => toggleColumn('average_standard_rate')}
-          title="The current standard rate for the group."
+          title="The current standard rate for the group. Formula: Average Standard Rate = Average(standard rate for the group)."
         >
           <span className="text-content">Current Standard Rate</span>
         </Th>
@@ -1572,7 +1572,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('average_web_rate')}
           onClick={() => toggleColumn('average_web_rate')}
-          title="The current web rate for the group."
+          title="The current web rate for the group. Formula: Average Web Rate = Average(web rate for the group)."
         >
           <span className="text-content">Current Web Rate</span>
         </Th>
@@ -1580,7 +1580,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('projected_occupancy_impact')}
           onClick={() => toggleColumn('projected_occupancy_impact')}
-          title="The projected occupancy impact measures the difference between a target occupancy rate and the company's projected occupancy, adjusted for unit group performance. The company group projected occupancy is calculated using (company_group_projected_move_ins - company_group_projected_move_outs + company_group_occupied_units) / company_group_total_units. The target occupancy is set at 92%, and adjusted by halving the difference between this target and the projected occupancy. The unit group's performance is calculated as (unit_group_projected_move_ins - unit_group_projected_move_outs) / unit_group_total_units. The impact is then determined: if the occupancy difference is greater than 0.1, the impact is 0.05; if less than -0.1, the impact is -0.05; otherwise, it is the occupancy difference divided by 2. This impact is scaled by multiplying it with the square root of the absolute value of the unit group versus company group performance comparison."
+          title="The projected occupancy impact measures the difference between a target occupancy rate and the company's projected occupancy, adjusted for unit group performance. Formula: Projected Occupancy Impact = (Target Occupancy - (Target Occupancy - Company Group Projected Occupancy) / 2) - Company Group Projected Occupancy, scaled by unit group performance."
         >
           <span className="text-content">Projected Occupancy Impact</span>
         </Th>
@@ -1588,7 +1588,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('leasing_velocity_impact')}
           onClick={() => toggleColumn('leasing_velocity_impact')}
-          title="The leasing velocity impact is calculated by comparing the unit group's leasing speed to the company's historical averages. The unit group’s leasing velocity is (move_ins_last_60_days / 60 * 365) / total_units, while the company-level leasing velocity step 1 is historical_average_move_ins_company / 60, and step 2 is (leasing_velocity_step_1 * 365) / total_units_irrespective. If the total units are less than 15, the impact is set to 0. If the unit group's leasing velocity exceeds the company-level step 2 velocity, the impact is (leasing_velocity - leasing_velocity_step_2) / 3; otherwise, it is (leasing_velocity - leasing_velocity_step_2) / 2, ensuring the impact reflects the relative leasing speeds."
+          title="The leasing velocity impact is calculated by comparing the unit group's leasing speed to the company's historical averages. Formula: Leasing Velocity Impact = (Leasing Velocity - Leasing Velocity Step 2) / 3 (if greater), or (Leasing Velocity - Leasing Velocity Step 2) / 2 (if lesser), ensuring the impact reflects the relative leasing speeds."
         >
           <span className="text-content">Leasing Velocity Impact</span>
         </Th>
@@ -1596,7 +1596,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('competitor_impact')}
           onClick={() => toggleColumn('competitor_impact')}
-          title="The competitor impact assesses how competitor pricing affects the unit group's rates. It begins by calculating the number of competitors (competitor_count) and comparing their prices to the unit group's current web rate (current_web_rate). The percentages of competitors with cheaper (competitor_percentage_cheaper) and more expensive (competitor_percentage_more_expensive) rates are determined, followed by calculating the mean and median competitor prices. The raw impact is derived based on competitor price distribution: if over 60% are more expensive, it is (competitor_percentage_more_expensive - 0.6); if under 40%, it is (competitor_percentage_more_expensive - 0.4); otherwise, it is 0. This raw impact is normalized using (math.sqrt(raw_competitor_impact + 1) - 1) * (competitor_count / 8), and clamped between 0 and 1 to yield the final competitor impact."
+          title="The competitor impact assesses how competitor pricing affects the unit group's rates. Formula: Competitor Impact = Normalized (math.sqrt(raw_competitor_impact + 1) - 1) * (Competitor Count / 8), where raw impact is derived from competitor price distribution."
         >
           <span className="text-content">Competitor Impact</span>
         </Th>
@@ -1604,7 +1604,7 @@ const GroupableTable: React.FC = () => {
           isSticky={true}
           minimized={hiddenColumns.has('suggested_web_rate')}
           onClick={() => toggleColumn('suggested_web_rate')}
-          title="The suggested web rate combines the impacts from leasing velocity, projected occupancy, and competitor pricing to adjust the unit group's base rate. The base rate is derived from the most relevant available metric: recent period average move-in rent, long-term customer average, or current web rate. The suggested web rate formula is base_rate * (1 + leasing_velocity_impact) * (1 + projected_occupancy_impact) * (1 + competitor_impact), which multiplies the base rate by factors reflecting each impact. This ensures the suggested web rate dynamically adjusts to current market conditions and performance metrics, providing an optimized pricing strategy."
+          title="The suggested web rate combines the impacts from leasing velocity, projected occupancy, and competitor pricing to adjust the unit group's base rate. Formula: Suggested Web Rate = Base Rate * (1 + Leasing Velocity Impact) * (1 + Projected Occupancy Impact) * (1 + Competitor Impact)."
         >
           <span className="text-content">Suggested Web Rate</span>
         </Th>
@@ -1619,7 +1619,7 @@ const GroupableTable: React.FC = () => {
       </tr>
     </thead>
   );
-
+  
   return (
     <PageContainer>
       <ToastContainer />
