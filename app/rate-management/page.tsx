@@ -122,8 +122,6 @@ interface GroupedData {
 const COLUMN_WIDTH = 150; // in pixels
 const FIRST_COLUMN_WIDTH = COLUMN_WIDTH * 1.48;
 
-
-
 const PageContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -134,6 +132,10 @@ const PageContainer = styled.div`
   padding: 20px;
   overflow: hidden;
   opacity: 0.8;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 
@@ -142,39 +144,25 @@ const TableWrapper = styled.div`
   height: 90vh;
   overflow: auto;
   position: relative;
-  scrollbar-width: none; // For Firefox
-  -ms-overflow-style: none; // For Internet Explorer and Edge
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
   &::-webkit-scrollbar {
-    width: 0 !important; // For Chrome, Safari, and Opera
-    height: 0 !important; // For horizontal scrollbar
+    width: 0 !important;
+    height: 0 !important;
   }
+
   border-radius: 20px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(213, 184, 255, 0.18);
   opacity: 0.95;
-`;
 
-
-const FadeBottom = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
-  pointer-events: none;
-`;
-
-const FadeRight = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 20px;
-  background: linear-gradient(to left, #e6e6e6, transparent);
-  pointer-events: none;
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+  }
 `;
 
 const FilterContainer = styled.div`
@@ -188,11 +176,25 @@ const FilterContainer = styled.div`
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+
   &::-webkit-scrollbar {
     display: none;
   }
+
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   opacity: 1;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+    max-height: 200px; /* Set max height for mobile view */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 20px 20px 0 0;
+    overflow-y: scroll; /* Enable scrolling for excess content */
+  }
 `;
 
 const TabContainer = styled.div`
@@ -253,15 +255,15 @@ const SeparatorRow = styled.tr`
 const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: boolean; isGroupHeader?: boolean }>`
   background-color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'darkgrey' : minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
-  padding: 16px 12px; /* Updated padding: 12px -> 16px */
+  padding: 16px 12px;
   text-align: center;
   width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   position: relative;
   color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'white' : minimized ? '#FAC898' : '#000000')};
-  border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')}; /* Add left border */
-  border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')}; /* Add right border */
+  border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')};
+  border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')};
 
   ${({ isSticky, minimized }) =>
     isSticky &&
@@ -277,10 +279,10 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     position: sticky;
     left: 0;
     z-index: 11;
-    width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    font-size: 18px; /* Increase font size for Group header */
+    width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    font-size: 18px;
     &::after {
       content: '';
       position: absolute;
@@ -296,17 +298,24 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
   .text-content {
     opacity: ${({ minimized }) => (minimized ? 0 : 1)};
     transition: opacity 0.3s;
-    display: ${({ minimized }) => (minimized ? 'none' : 'block')}; /* Hide the text content when minimized */
+    display: ${({ minimized }) => (minimized ? 'none' : 'block')};
   }
 
   &::after {
-    content: ${({ minimized }) => (minimized ? "'+'" : "''")}; /* Display '+' character when minimized */
+    content: ${({ minimized }) => (minimized ? "'+'" : "''")};
     position: absolute;
     left: 0;
     right: 0;
     text-align: center;
     font-size: 16px;
-    color: ${({ minimized }) => (minimized ? '#000' : 'transparent')}; /* Show the '+' character when minimized */
+    color: ${({ minimized }) => (minimized ? '#000' : 'transparent')};
+  }
+
+  @media (max-width: 768px) {
+    width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    min-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    max-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    font-size: 12px; /* Smaller font size for mobile view */
   }
 `;
 
@@ -330,10 +339,10 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
     left: 0;
     z-index: 5;
     background-color: inherit;
-    width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px; /* Double the width for Group column */
-    text-align: left; /* Align the group column to the left */
+    width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    min-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    max-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
+    text-align: left;
     &::after {
       content: '';
       position: absolute;
@@ -345,6 +354,12 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
       pointer-events: none;
     }
   `}
+
+  @media (max-width: 768px) {
+    width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    min-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    max-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+  }
 `;
 
 const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
