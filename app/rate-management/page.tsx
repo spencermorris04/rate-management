@@ -60,6 +60,8 @@ interface RateManagementItem {
   competitor_impact: number;
   suggested_web_rate: number | null;
   expected_web_rate: number | null;
+  net_available_units_last_60_days: number;
+  days_since_last_rental: number;      // New field
 }
 
 interface GroupedData {
@@ -112,6 +114,8 @@ interface GroupedData {
   competitor_impact: number;
   suggested_web_rate: number | null;
   expected_web_rate: number | null;
+  net_available_units_last_60_days: number;
+  days_since_last_rental: number;      // New field
   subGroups?: { [key: string]: GroupedData };
 }
 
@@ -438,6 +442,8 @@ const GroupableTable: React.FC = () => {
     historical_net_rentals: 0,
     current_period_net_rentals: 0,
     projected_net_rentals: 0,
+    net_available_units_last_60_days: 0,
+    days_since_last_rental: 0,
     competitor_count: 0,
     competitor_percentage_cheaper: 0,
     competitor_percentage_more_expensive: 0,
@@ -611,6 +617,9 @@ const GroupableTable: React.FC = () => {
         const current_period_net_rentals = items.reduce((sum, item) => sum + item.current_period_net_rentals, 0);
         const projected_net_rentals = items.reduce((sum, item) => sum + item.projected_net_rentals, 0);
 
+        const net_available_units_last_60_days = items.reduce((sum, item) => sum + item.net_available_units_last_60_days, 0) / items.length;
+        const days_since_last_rental = items.reduce((sum, item) => sum + item.days_since_last_rental, 0) / items.length;
+
         const competitor_count = items.reduce((sum, item) => sum + item.competitor_count, 0);
         const competitor_percentage_cheaper =
           items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
@@ -672,6 +681,8 @@ const GroupableTable: React.FC = () => {
           historical_net_rentals,
           current_period_net_rentals,
           projected_net_rentals,
+          net_available_units_last_60_days,
+          days_since_last_rental,
           competitor_count,
           competitor_percentage_cheaper,
           competitor_percentage_more_expensive,
@@ -835,6 +846,9 @@ const GroupableTable: React.FC = () => {
       const current_period_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.current_period_net_rentals, 0);
       const projected_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0);
 
+      const net_available_units_last_60_days = Object.values(subGroups).reduce((sum, group) => sum + group.net_available_units_last_60_days, 0) / Object.values(subGroups).length;
+      const days_since_last_rental = Object.values(subGroups).reduce((sum, group) => sum + group.days_since_last_rental, 0) / Object.values(subGroups).length;
+
       const competitor_count = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_count, 0);
       const competitor_percentage_cheaper =
         Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_cheaper, 0) / Object.values(subGroups).length;
@@ -903,6 +917,8 @@ const GroupableTable: React.FC = () => {
         historical_net_rentals,
         current_period_net_rentals,
         projected_net_rentals,
+        net_available_units_last_60_days,
+        days_since_last_rental,
         competitor_count,
         competitor_percentage_cheaper,
         competitor_percentage_more_expensive,
@@ -1039,6 +1055,8 @@ const GroupableTable: React.FC = () => {
             <Td minimized={hiddenColumns.has('historical_net_rentals')}>{hiddenColumns.has('historical_net_rentals') ? ' ' : item.historical_net_rentals.toFixed(2)}</Td>
             <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : item.current_period_net_rentals.toFixed(2)}</Td>
             <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : item.projected_net_rentals.toFixed(2)}</Td>
+            <Td minimized={hiddenColumns.has('net_available_units_last_60_days')}>{hiddenColumns.has('net_available_units_last_60_days') ? ' ' : item.net_available_units_last_60_days}</Td>
+            <Td minimized={hiddenColumns.has('days_since_last_rental')}>{hiddenColumns.has('days_since_last_rental') ? ' ' : item.days_since_last_rental}</Td>
   
             <Td minimized={hiddenColumns.has('competitor_count')}>{hiddenColumns.has('competitor_count') ? ' ' : item.competitor_count}</Td>
             <Td minimized={hiddenColumns.has('competitor_percentage_cheaper')}>{hiddenColumns.has('competitor_percentage_cheaper') ? ' ' : (item.competitor_percentage_cheaper * 100).toFixed(2) + '%'}</Td>
@@ -1129,7 +1147,8 @@ const GroupableTable: React.FC = () => {
               <Td minimized={hiddenColumns.has('historical_net_rentals')}>{hiddenColumns.has('historical_net_rentals') ? ' ' : subGroup.historical_net_rentals?.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : subGroup.current_period_net_rentals?.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : subGroup.projected_net_rentals?.toFixed(2)}</Td>
-
+              <Td minimized={hiddenColumns.has('net_available_units_last_60_days')}>{hiddenColumns.has('net_available_units_last_60_days') ? ' ' : subGroup.net_available_units_last_60_days.toFixed(2)}</Td>
+              <Td minimized={hiddenColumns.has('days_since_last_rental')}>{hiddenColumns.has('days_since_last_rental') ? ' ' : subGroup.days_since_last_rental.toFixed(2)}</Td>
               <Td minimized={hiddenColumns.has('competitor_count')}>{hiddenColumns.has('competitor_count') ? ' ' : subGroup.competitor_count}</Td>
               <Td minimized={hiddenColumns.has('competitor_percentage_cheaper')}>{hiddenColumns.has('competitor_percentage_cheaper') ? ' ' : (subGroup.competitor_percentage_cheaper * 100)?.toFixed(2) + '%'}</Td>
               <Td minimized={hiddenColumns.has('competitor_percentage_more_expensive')}>{hiddenColumns.has('competitor_percentage_more_expensive') ? ' ' : (subGroup.competitor_percentage_more_expensive * 100)?.toFixed(2) + '%'}</Td>
@@ -1504,6 +1523,23 @@ const GroupableTable: React.FC = () => {
         >
           <span className="text-content">Projected Net Rentals</span>
         </Th>
+        <Th
+        isSticky={true}
+        minimized={hiddenColumns.has('net_available_units_last_60_days')}
+        onClick={() => toggleColumn('net_available_units_last_60_days')}
+        title="Test description for days with low availability."
+      >
+        <span className="text-content">Days with Low Availability</span>
+      </Th>
+      <Th
+        isSticky={true}
+        minimized={hiddenColumns.has('days_since_last_rental')}
+        onClick={() => toggleColumn('days_since_last_rental')}
+        title="Test description for days since last rental."
+      >
+        <span className="text-content">Days Since Last Rental</span>
+      </Th>
+
         <Th
           isSticky={true}
           minimized={hiddenColumns.has('competitor_count')}
