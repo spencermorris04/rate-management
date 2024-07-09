@@ -1527,7 +1527,7 @@ const GroupableTable: React.FC = () => {
         isSticky={true}
         minimized={hiddenColumns.has('net_available_units_last_60_days')}
         onClick={() => toggleColumn('net_available_units_last_60_days')}
-        title="Test description for days with low availability."
+        title="The count of days over the last 60 days where the count of rentable units was 3 or lower. Rentable units is calculated as Total Units - Occupied Units - Unrentable Units."
       >
         <span className="text-content">Days with Low Availability</span>
       </Th>
@@ -1535,7 +1535,7 @@ const GroupableTable: React.FC = () => {
         isSticky={true}
         minimized={hiddenColumns.has('days_since_last_rental')}
         onClick={() => toggleColumn('days_since_last_rental')}
-        title="Test description for days since last rental."
+        title="The number of days since the group was last rented."
       >
         <span className="text-content">Days Since Last Rental</span>
       </Th>
