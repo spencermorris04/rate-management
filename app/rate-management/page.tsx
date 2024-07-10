@@ -1,10 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { toast, ToastContainer } from 'react-toastify';
 
+
+// Define the types for the styled components
+interface StyledComponentProps {
+  pinnedIndex?: number;
+  isSticky?: boolean;
+  minimized?: boolean;
+  isGroupHeader?: boolean;
+  isStickyLeft?: boolean;
+  isPinned?: boolean;
+  level?: number;
+  even?: boolean;
+}
+
 interface RateManagementItem {
+  [key: string]: string | number | null | undefined; // Add this line
   facility_name: string;
   area_bucket: string;
   most_common_description: string;
@@ -61,10 +75,22 @@ interface RateManagementItem {
   suggested_web_rate: number | null;
   expected_web_rate: number | null;
   net_available_units_last_60_days: number;
-  days_since_last_rental: number;      // New field
+  days_since_last_rental: number; // New field
+  third_quartile_occupancy: number;
+  unit_group_leasing_velocity: number;
+  unit_group_projected_occupancy: number;
+  company_group_leasing_velocity: number;
+  unrentable_count: number;
+  reserved_count: number;
+  damaged_count: number;
+  otherwise_unrentable_count: number;
+  available_units: number;
+  days_with_zero_availability: number;
+  days_with_low_availability: number;
 }
 
 interface GroupedData {
+  [key: string]: any; // Add this line
   items: RateManagementItem[];
   total_units: number;
   occupied_units: number;
@@ -115,8 +141,41 @@ interface GroupedData {
   suggested_web_rate: number | null;
   expected_web_rate: number | null;
   net_available_units_last_60_days: number;
-  days_since_last_rental: number;      // New field
+  days_since_last_rental: number; // New field
+  unit_group_leasing_velocity: number;
+  company_group_leasing_velocity: number;
+  unit_group_projected_occupancy: number;
+  third_quartile_occupancy: number;
+  unrentable_count: number;
+  reserved_count: number;
+  damaged_count: number;
+  otherwise_unrentable_count: number;
+  available_units: number;
+  days_with_zero_availability: number;
+  days_with_low_availability: number;
   subGroups?: { [key: string]: GroupedData };
+}
+
+
+interface CompetitorPricingItem {
+  Area: number;
+  Climate: string;
+  Covered: number;
+  Drive_Up: string;
+  Elevator: number;
+  Floor: number;
+  Online_Price: number;
+  Our_Facility: string;
+  Outdoor_Access: number;
+  Parking: string | null;
+  Promotion_Price: number;
+  Regular_Price: number;
+  Size: string;
+  Size_1: number;
+  Size_2: number;
+  Store_Name: string;
+  Unit: string;
+  group_key: string;
 }
 
 const COLUMN_WIDTH = 150; // in pixels
@@ -139,7 +198,7 @@ const PageContainer = styled.div`
 `;
 
 
-const TableWrapper = styled.div`
+const TableWrapper = styled.div<StyledComponentProps>`
   width: 75vw;
   height: 90vh;
   overflow: auto;
@@ -163,7 +222,18 @@ const TableWrapper = styled.div`
     width: 100%;
     height: auto;
   }
+
+  th {
+    &.pinned {
+      position: sticky;
+      left: ${({ pinnedIndex }) => pinnedIndex ? pinnedIndex * COLUMN_WIDTH + FIRST_COLUMN_WIDTH : 0}px;
+      z-index: 15;
+      background-color: #d9d9d9;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+  }
 `;
+
 
 const FilterContainer = styled.div`
   width: 20vw;
@@ -252,7 +322,8 @@ const SeparatorRow = styled.tr`
   background-color: black;
 `;
 
-const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: boolean; isGroupHeader?: boolean }>`
+
+const Th = styled.th<StyledComponentProps>`
   background-color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'darkgrey' : minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
   padding: 16px 12px;
@@ -283,16 +354,6 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     min-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
     max-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
     font-size: 18px;
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: -20px;
-      bottom: 0;
-      width: 20px;
-      background: linear-gradient(to left, transparent, ${minimized ? '#FAC898' : '#e6e6e6'});
-      pointer-events: none;
-    }
   `}
 
   .text-content {
@@ -317,15 +378,25 @@ const Th = styled.th<{ isSticky?: boolean; isStickyLeft?: boolean; minimized?: b
     max-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
     font-size: 12px; /* Smaller font size for mobile view */
   }
+  ${({ isPinned, pinnedIndex }) =>
+    isPinned &&
+    `
+    position: sticky;
+    left: ${pinnedIndex ? pinnedIndex * COLUMN_WIDTH + COLUMN_WIDTH : 0}px;
+    z-index: 15;
+    background-color: #d9d9d9;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  `}
+
+  .pin-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    cursor: pointer;
+  }
 `;
 
-const GroupHeaderTh = styled(Th)`
-  background-color: #d9d9d9;
-  color: black;
-  font-size: 32px; /* Increase font size for Group header */
-`;
-
-const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }>`
+const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean; isPinned?: boolean; pinnedIndex?: number; even?: boolean }>`
   border: none;
   padding: 18px 8px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
@@ -333,26 +404,25 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
   min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
   text-align: center;
+  background-color: ${({ even }) => (even ? '#f9f9f9' : 'white')}; /* Apply even and odd background color */
 
   ${({ isSticky }) => isSticky && `
     position: sticky;
     left: 0;
     z-index: 5;
-    background-color: inherit;
     width: ${FIRST_COLUMN_WIDTH * 1.48}px;
     min-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
     max-width: ${FIRST_COLUMN_WIDTH * 1.48}px;
     text-align: left;
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: -20px;
-      bottom: 0;
-      width: 20px;
-      background: linear-gradient(to left, transparent, inherit);
-      pointer-events: none;
-    }
+  `}
+
+  ${({ isPinned, pinnedIndex }) =>
+    isPinned && pinnedIndex !== undefined &&
+    `
+    position: sticky;
+    left: ${pinnedIndex * COLUMN_WIDTH + COLUMN_WIDTH}px;
+    z-index: 5;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   `}
 
   @media (max-width: 768px) {
@@ -362,9 +432,34 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean }
   }
 `;
 
+
+
+
+
+
+
+
+
+
+
+
+const GroupHeaderTh = styled(Th)`
+  background-color: #d9d9d9;
+  color: black;
+  font-size: 32px; /* Increase font size for Group header */
+`;
+
+
+
+
 const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
   background-color: ${({ level }) => {
-    const colors = ['#e6f3ff', '#ffe6e6', '#e6ffe6', '#fff5e6'];
+    const colors = [
+      'rgba(230, 243, 255, 0.95)', 
+      'rgba(255, 230, 230, 0.95)', 
+      'rgba(230, 255, 230, 0.95)', 
+      'rgba(255, 245, 230, 0.95)'
+    ];
     return colors[level % colors.length];
   }};
   cursor: pointer;
@@ -372,25 +467,36 @@ const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
 
   &:hover {
     background-color: ${({ level }) => {
-      const colors = ['#ccebff', '#ffcccc', '#ccffcc', '#ffe6cc'];
+      const colors = [
+        'rgba(204, 235, 255, 1)', 
+        'rgba(255, 204, 204, 1)', 
+        'rgba(204, 255, 204, 1)', 
+        'rgba(255, 230, 204, 1)'
+      ];
       return colors[level % colors.length];
     }};
   }
 
   ${Td} {
     font-weight: bold;
+    background-color: inherit; /* Ensure the background color is inherited */
   }
 `;
+
+
+
 
 
 const DataRow = styled.tr<{ even: boolean }>`
-  background-color: ${({ even }) => (even ? '#f9f9f9' : 'white')};
+  background-color: ${({ even }) => (even ? 'rgba(249, 249, 249, 0.85)' : 'rgba(255, 255, 255, 0.85)')};
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: rgba(245, 245, 245, 0.9);
   }
 `;
+
+
 
 const UpdateButton = styled.button`
   margin-left: 4px;
@@ -426,6 +532,13 @@ const GroupableTable: React.FC = () => {
     total_units: 0,
     occupied_units: 0,
     occupancy_rate: 0,
+    unrentable_count: 0,
+    reserved_count: 0,
+    damaged_count: 0,
+    otherwise_unrentable_count: 0,
+    available_units: 0,
+    days_with_zero_availability: 0,
+    days_with_low_availability: 0,
     historical_move_ins_last_60_days_group: 0,
     historical_move_ins_last_60_days_facility: 0,
     historical_move_ins_last_60_days_company: 0,
@@ -468,9 +581,14 @@ const GroupableTable: React.FC = () => {
     recent_period_average_move_in_rent: null,
     average_standard_rate: 0,
     average_web_rate: 0,
+    third_quartile_occupancy: 0,
+    unit_group_projected_occupancy: 0,
     projected_occupancy_impact: 0,
+    unit_group_leasing_velocity: 0,
+    company_group_leasing_velocity: 0,
     leasing_velocity_impact: 0,
     competitor_impact: 0,
+
     suggested_web_rate: null,
     expected_web_rate: null,
   });
@@ -508,6 +626,44 @@ const GroupableTable: React.FC = () => {
     'historical_move_ins_last_60_days_company',
   ]));
 
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const [competitorPricing, setCompetitorPricing] = useState<CompetitorPricingItem[]>([]);
+
+  const [pinnedColumns, setPinnedColumns] = useState<string[]>([]);
+
+  const togglePinColumn = (column: string) => {
+    setPinnedColumns(prevPinned => {
+      const newPinnedColumns = prevPinned.includes(column)
+        ? prevPinned.filter(col => col !== column)
+        : [...prevPinned, column];
+      
+      // Limit the number of pinned columns to 4
+      if (newPinnedColumns.length > 4) {
+        toast.warn('You can pin up to 4 columns only. Please unpin a column to pin a new one.');
+        return prevPinned;
+      }
+  
+      return newPinnedColumns;
+    });
+  };
+  
+  
+  const toggleGroup = (groupPath: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      next.has(groupPath) ? next.delete(groupPath) : next.add(groupPath);
+      return next;
+    });
+  };
+
+  const toggleColumn = (column: string) => {
+    setHiddenColumns(prev => {
+      const next = new Set(prev);
+      next.has(column) ? next.delete(column) : next.add(column);
+      return next;
+    });
+  };
+
   useEffect(() => {
     fetch('/api/rate-management', { cache: 'no-store' })
       .then((response) => response.json())
@@ -522,6 +678,23 @@ const GroupableTable: React.FC = () => {
       .catch((err) => {
         console.error('Error fetching data:', err);
         setError('Failed to fetch data. Please try again later.');
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/competitor-pricing', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log('Competitor Pricing API Response:', responseData);
+        if (responseData && Array.isArray(responseData.data)) {
+          setCompetitorPricing(responseData.data);
+        } else {
+          throw new Error('Received data is not an array');
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching competitor pricing data:', err);
+        setError('Failed to fetch competitor pricing data. Please try again later.');
       });
   }, []);
 
@@ -547,12 +720,20 @@ const GroupableTable: React.FC = () => {
           (filters.type.size === 0 || filters.type.has(item.group_type)) &&
           (filters.area.size === 0 || filters.area.has(item.area_bucket))
       );
-      
+    
       if (levels.length === 0) {
         const total_units = items.reduce((sum, item) => sum + item.total_units, 0);
         const occupied_units = items.reduce((sum, item) => sum + item.occupied_units, 0);
         const occupancy_rate = occupied_units / total_units;
 
+        const unrentable_count = items.reduce((sum, item) => sum + item.unrentable_count, 0);
+        const reserved_count = items.reduce((sum, item) => sum + item.reserved_count, 0);
+        const damaged_count = items.reduce((sum, item) => sum + item.damaged_count, 0);
+        const otherwise_unrentable_count = items.reduce((sum, item) => sum + item.otherwise_unrentable_count, 0);
+        const available_units = items.reduce((sum, item) => sum + item.available_units, 0);
+        const days_with_zero_availability = median(items.map((item) => item.days_with_zero_availability));
+        const days_with_low_availability = median(items.map((item) => item.days_with_low_availability));
+    
         const historical_move_ins_last_60_days_group = items.reduce(
           (sum, item) => sum + item.historical_move_ins_last_60_days_group,
           0
@@ -563,11 +744,11 @@ const GroupableTable: React.FC = () => {
         const historical_move_ins_last_60_days_company = median(
           items.map((item) => item.historical_move_ins_last_60_days_company)
         );
-
+    
         const move_ins_last_60_days_group = items.reduce((sum, item) => sum + item.move_ins_last_60_days_group, 0);
         const move_ins_last_60_days_facility = median(items.map((item) => item.move_ins_last_60_days_facility));
         const move_ins_last_60_days_company = median(items.map((item) => item.move_ins_last_60_days_company));
-
+    
         const historical_move_ins_next_60_days_group = items.reduce(
           (sum, item) => sum + item.historical_move_ins_next_60_days_group,
           0
@@ -578,7 +759,7 @@ const GroupableTable: React.FC = () => {
         const historical_move_ins_next_60_days_company = median(
           items.map((item) => item.historical_move_ins_next_60_days_company)
         );
-
+    
         const projected_move_ins_group = items.reduce((sum, item) => sum + item.projected_move_ins_group, 0);
         const projected_move_ins_facility = median(items.map((item) => item.projected_move_ins_facility));
         const facility_projected_move_ins_scaled = items.reduce(
@@ -586,35 +767,46 @@ const GroupableTable: React.FC = () => {
           0
         );
         const blended_move_in_projection = items.reduce((sum, item) => sum + item.blended_move_in_projection, 0);
-
-        const facility_current_move_out_occupied_ratio_last_60_days = median(
-          items.map((item) => item.facility_current_move_out_occupied_ratio_last_60_days)
+    
+        const facility_current_move_out_occupied_ratio_last_60_days =
+          items.reduce((sum, item) => sum + item.facility_current_move_outs, 0) /
+          items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0);
+        
+        const facility_current_move_outs = items.reduce((sum, item) => sum + item.facility_current_move_outs, 0);
+        const facility_current_occupied_units = items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0);
+    
+        const facility_average_historical_move_out_occupied_ratio_last_60_days =
+          items.reduce((sum, item) => sum + item.facility_historical_move_outs_last_60_days, 0) /
+          items.reduce((sum, item) => sum + item.facility_historical_occupied_units_last_60_days, 0);
+        
+        const facility_historical_move_outs_last_60_days = items.reduce(
+          (sum, item) => sum + item.facility_historical_move_outs_last_60_days,
+          0
         );
-        const facility_current_move_outs = median(items.map((item) => item.facility_current_move_outs));
-        const facility_current_occupied_units = median(items.map((item) => item.facility_current_occupied_units));
-
-        const facility_average_historical_move_out_occupied_ratio_last_60_days = median(
-          items.map((item) => item.facility_average_historical_move_out_occupied_ratio_last_60_days)
+        const facility_historical_occupied_units_last_60_days = items.reduce(
+          (sum, item) => sum + item.facility_historical_occupied_units_last_60_days,
+          0
         );
-        const facility_historical_move_outs_last_60_days = median(
-          items.map((item) => item.facility_historical_move_outs_last_60_days)
-        );
-        const facility_historical_occupied_units_last_60_days = median(
-          items.map((item) => item.facility_historical_occupied_units_last_60_days)
-        );
-
-        const facility_facility_current_vs_historical_move_out_occupied_ratio = median(
-          items.map((item) => item.facility_facility_current_vs_historical_move_out_occupied_ratio)
-        );
-
+    
+        const facility_facility_current_vs_historical_move_out_occupied_ratio =
+          items.reduce((sum, item) => sum + item.facility_current_move_outs, 0) /
+          items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0) /
+          (
+            items.reduce((sum, item) => sum + item.facility_historical_move_outs_last_60_days, 0) /
+            items.reduce((sum, item) => sum + item.facility_historical_occupied_units_last_60_days, 0)
+          );
+    
         const group_current_move_out_occupied_ratio_last_60_days =
-          items.reduce((sum, item) => sum + item.group_current_move_out_occupied_ratio_last_60_days, 0) / items.length;
+          items.reduce((sum, item) => sum + item.group_current_move_outs, 0) /
+          items.reduce((sum, item) => sum + item.group_current_occupied_units, 0);
+        
         const group_current_move_outs = items.reduce((sum, item) => sum + item.group_current_move_outs, 0);
         const group_current_occupied_units = items.reduce((sum, item) => sum + item.group_current_occupied_units, 0);
-
+    
         const group_average_historical_move_out_occupied_ratio_next_60_days =
-          items.reduce((sum, item) => sum + item.group_average_historical_move_out_occupied_ratio_next_60_days, 0) /
-          items.length;
+          items.reduce((sum, item) => sum + item.group_historical_move_outs_next_60_days, 0) /
+          items.reduce((sum, item) => sum + item.group_historical_occupied_units_next_60_days, 0);
+        
         const group_historical_move_outs_next_60_days = items.reduce(
           (sum, item) => sum + item.group_historical_move_outs_next_60_days,
           0
@@ -623,18 +815,24 @@ const GroupableTable: React.FC = () => {
           (sum, item) => sum + item.group_historical_occupied_units_next_60_days,
           0
         );
-
+    
         const projected_move_out_occupied_ratio =
-          items.reduce((sum, item) => sum + item.projected_move_out_occupied_ratio, 0) / items.length;
+          items.reduce((sum, item) => sum + item.projected_move_outs_next_60_days, 0) /
+          items.reduce((sum, item) => sum + item.group_current_occupied_units, 0);
+        
         const projected_move_outs_next_60_days = items.reduce((sum, item) => sum + item.projected_move_outs_next_60_days, 0);
-
+    
         const historical_net_rentals = items.reduce((sum, item) => sum + item.historical_net_rentals, 0);
         const current_period_net_rentals = items.reduce((sum, item) => sum + item.current_period_net_rentals, 0);
         const projected_net_rentals = items.reduce((sum, item) => sum + item.projected_net_rentals, 0);
-
-        const net_available_units_last_60_days = items.reduce((sum, item) => sum + item.net_available_units_last_60_days, 0) / items.length;
-        const days_since_last_rental = items.reduce((sum, item) => sum + item.days_since_last_rental, 0) / items.length;
-
+    
+        const net_available_units_last_60_days = (
+          items.reduce((sum, item) => sum + item.net_available_units_last_60_days, 0) / items.length
+        );
+        const days_since_last_rental = (
+          items.reduce((sum, item) => sum + item.days_since_last_rental, 0) / items.length
+        );
+    
         const competitor_count = items.reduce((sum, item) => sum + item.competitor_count, 0);
         const competitor_percentage_cheaper =
           items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
@@ -642,29 +840,46 @@ const GroupableTable: React.FC = () => {
           items.reduce((sum, item) => sum + item.competitor_percentage_more_expensive, 0) / items.length;
         const mean_competitor_price = items.reduce((sum, item) => sum + item.mean_competitor_price, 0) / items.length;
         const median_competitor_price = items.reduce((sum, item) => sum + item.median_competitor_price, 0) / items.length;
-
+    
         const long_term_customer_average =
           items.reduce((sum, item) => sum + (item.long_term_customer_average || 0), 0) / items.length;
         const recent_period_average_move_in_rent =
           items.reduce((sum, item) => sum + (item.recent_period_average_move_in_rent || 0), 0) / items.length;
         const average_standard_rate = items.reduce((sum, item) => sum + item.average_standard_rate, 0) / items.length;
         const average_web_rate = items.reduce((sum, item) => sum + item.average_web_rate, 0) / items.length;
-
-        const projected_occupancy_impact = items.reduce((sum, item) => sum + item.projected_occupancy_impact, 0);
+    
+        const third_quartile_occupancy = items.reduce((sum, item) => sum + item.third_quartile_occupancy, 0);
+        const unit_group_projected_occupancy = (
+          items.reduce((sum, item) => sum + item.occupied_units, 0) + items.reduce((sum, item) => sum + item.projected_net_rentals, 0)
+        ) / total_units;
+    
+        const projected_occupancy_impact = items.reduce((sum, item) => sum + (item.projected_occupancy_impact || 0), 0) / items.length;
+    
+        const unit_group_leasing_velocity =
+          items.reduce((sum, item) => sum + (item.unit_group_leasing_velocity || 0), 0) / items.length;
+        const company_group_leasing_velocity =
+          items.reduce((sum, item) => sum + (item.company_group_leasing_velocity || 0), 0) / items.length;
         const leasing_velocity_impact =
           items.reduce((sum, item) => sum + (item.leasing_velocity_impact || 0), 0) / items.length;
-        const competitor_impact = items.reduce((sum, item) => sum + item.competitor_impact, 0) / items.length;
-
+        const competitor_impact = items.reduce((sum, item) => sum + (item.competitor_impact || 0), 0) / items.length;
+    
         const suggested_web_rate =
           items.reduce((sum, item) => sum + (item.suggested_web_rate || 0), 0) / items.length;
         const expected_web_rate =
           items.reduce((sum, item) => sum + (item.expected_web_rate || 0), 0) / items.length;
-
+    
         return {
           items,
           total_units,
           occupied_units,
           occupancy_rate,
+          unrentable_count,
+          reserved_count,
+          damaged_count,
+          otherwise_unrentable_count,
+          available_units,
+          days_with_zero_availability,
+          days_with_low_availability,
           historical_move_ins_last_60_days_group,
           historical_move_ins_last_60_days_facility,
           historical_move_ins_last_60_days_company,
@@ -707,14 +922,18 @@ const GroupableTable: React.FC = () => {
           recent_period_average_move_in_rent,
           average_standard_rate,
           average_web_rate,
+          unit_group_projected_occupancy,
+          third_quartile_occupancy,
           projected_occupancy_impact,
+          unit_group_leasing_velocity,
+          company_group_leasing_velocity,
           leasing_velocity_impact,
           competitor_impact,
           suggested_web_rate,
           expected_web_rate,
         };
       }
-
+    
       const grouped = items.reduce((acc, item) => {
         const key = item[levels[0]] as string;
         if (!acc[key]) {
@@ -723,7 +942,7 @@ const GroupableTable: React.FC = () => {
         acc[key].push(item);
         return acc;
       }, {} as { [key: string]: RateManagementItem[] });
-
+    
       let sortedKeys: string[];
       if (levels[0] === 'facility_name' || levels[0] === 'group_type') {
         sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
@@ -736,15 +955,26 @@ const GroupableTable: React.FC = () => {
       } else {
         sortedKeys = Object.keys(grouped);
       }
-
+    
       const subGroups = sortedKeys.reduce((acc, key) => {
         acc[key] = groupData(grouped[key], levels.slice(1));
         return acc;
       }, {} as { [key: string]: GroupedData });
-
+    
       const total_units = Object.values(subGroups).reduce((sum, group) => sum + group.total_units, 0);
       const occupied_units = Object.values(subGroups).reduce((sum, group) => sum + group.occupied_units, 0);
       const occupancy_rate = occupied_units / total_units;
+      const unrentable_count = Object.values(subGroups).reduce((sum, group) => sum + group.unrentable_count, 0);
+      const reserved_count = Object.values(subGroups).reduce((sum, group) => sum + group.reserved_count, 0);
+      const damaged_count = Object.values(subGroups).reduce((sum, group) => sum + group.damaged_count, 0);
+      const otherwise_unrentable_count = Object.values(subGroups).reduce((sum, group) => sum + group.otherwise_unrentable_count, 0);
+      const available_units = Object.values(subGroups).reduce((sum, group) => sum + group.available_units, 0);
+      const days_with_zero_availability =
+      Object.values(subGroups).reduce((sum, group) => sum + group.days_with_zero_availability, 0) /
+      Object.values(subGroups).length;
+      const days_with_low_availability =
+      Object.values(subGroups).reduce((sum, group) => sum + group.days_with_low_availability, 0) /
+      Object.values(subGroups).length;
 
       const historical_move_ins_last_60_days_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.historical_move_ins_last_60_days_group,
@@ -756,7 +986,7 @@ const GroupableTable: React.FC = () => {
       const historical_move_ins_last_60_days_company =
         Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_company, 0) /
         Object.values(subGroups).length;
-
+    
       const move_ins_last_60_days_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.move_ins_last_60_days_group,
         0
@@ -767,7 +997,7 @@ const GroupableTable: React.FC = () => {
       const move_ins_last_60_days_company =
         Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_company, 0) /
         Object.values(subGroups).length;
-
+    
       const historical_move_ins_next_60_days_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.historical_move_ins_next_60_days_group,
         0
@@ -778,7 +1008,7 @@ const GroupableTable: React.FC = () => {
       const historical_move_ins_next_60_days_company =
         Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_company, 0) /
         Object.values(subGroups).length;
-
+    
       const projected_move_ins_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.projected_move_ins_group,
         0
@@ -794,10 +1024,11 @@ const GroupableTable: React.FC = () => {
         (sum, group) => sum + group.blended_move_in_projection,
         0
       );
-
+    
       const facility_current_move_out_occupied_ratio_last_60_days =
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_move_out_occupied_ratio_last_60_days, 0) /
-        Object.values(subGroups).length;
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_move_outs, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_occupied_units, 0);
+      
       const facility_current_move_outs = Object.values(subGroups).reduce(
         (sum, group) => sum + group.facility_current_move_outs,
         0
@@ -806,64 +1037,67 @@ const GroupableTable: React.FC = () => {
         (sum, group) => sum + group.facility_current_occupied_units,
         0
       );
-
+    
       const facility_average_historical_move_out_occupied_ratio_last_60_days =
-        Object.values(subGroups).reduce(
-          (sum, group) => sum + group.facility_average_historical_move_out_occupied_ratio_last_60_days,
-          0
-        ) / Object.values(subGroups).length;
-      const facility_historical_move_outs_last_60_days = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.facility_historical_move_outs_last_60_days,
-        0
-      ) / Object.values(subGroups).length;
-      const facility_historical_occupied_units_last_60_days = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.facility_historical_occupied_units_last_60_days,
-        0
-      ) / Object.values(subGroups).length;
-
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0);
+      
+      const facility_historical_move_outs_last_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0)
+      );
+      const facility_historical_occupied_units_last_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0)
+      );
+    
       const facility_facility_current_vs_historical_move_out_occupied_ratio =
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_facility_current_vs_historical_move_out_occupied_ratio, 0) /
-        Object.values(subGroups).length;
-
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_move_outs, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_occupied_units, 0) /
+        (
+          Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0) /
+          Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0)
+        );
+    
       const group_current_move_out_occupied_ratio_last_60_days =
-        Object.values(subGroups).reduce((sum, group) => sum + group.group_current_move_out_occupied_ratio_last_60_days, 0) /
-        Object.values(subGroups).length;
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_current_move_outs, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_current_occupied_units, 0);
+      
       const group_current_move_outs = Object.values(subGroups).reduce((sum, group) => sum + group.group_current_move_outs, 0);
       const group_current_occupied_units = Object.values(subGroups).reduce(
         (sum, group) => sum + group.group_current_occupied_units,
         0
       );
-
+    
       const group_average_historical_move_out_occupied_ratio_next_60_days =
-        Object.values(subGroups).reduce(
-          (sum, group) => sum + group.group_average_historical_move_out_occupied_ratio_next_60_days,
-          0
-        ) / Object.values(subGroups).length;
-      const group_historical_move_outs_next_60_days = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.group_historical_move_outs_next_60_days,
-        0
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_historical_move_outs_next_60_days, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_historical_occupied_units_next_60_days, 0);
+      
+      const group_historical_move_outs_next_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_historical_move_outs_next_60_days, 0)
       );
-      const group_historical_occupied_units_next_60_days = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.group_historical_occupied_units_next_60_days,
-        0
+      const group_historical_occupied_units_next_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_historical_occupied_units_next_60_days, 0)
       );
-
-      const projected_move_out_occupied_ratio = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.projected_move_out_occupied_ratio,
-        0
-      );
+    
+      const projected_move_out_occupied_ratio =
+        Object.values(subGroups).reduce((sum, group) => sum + group.projected_move_outs_next_60_days, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.group_current_occupied_units, 0);
+      
       const projected_move_outs_next_60_days = Object.values(subGroups).reduce(
         (sum, group) => sum + group.projected_move_outs_next_60_days,
         0
       );
-
+    
       const historical_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.historical_net_rentals, 0);
       const current_period_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.current_period_net_rentals, 0);
       const projected_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0);
-
-      const net_available_units_last_60_days = Object.values(subGroups).reduce((sum, group) => sum + group.net_available_units_last_60_days, 0) / Object.values(subGroups).length;
-      const days_since_last_rental = Object.values(subGroups).reduce((sum, group) => sum + group.days_since_last_rental, 0) / Object.values(subGroups).length;
-
+    
+      const net_available_units_last_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.net_available_units_last_60_days, 0) / Object.values(subGroups).length
+      );
+      const days_since_last_rental = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.days_since_last_rental, 0) / Object.values(subGroups).length
+      );
+    
       const competitor_count = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_count, 0);
       const competitor_percentage_cheaper =
         Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_cheaper, 0) / Object.values(subGroups).length;
@@ -874,7 +1108,7 @@ const GroupableTable: React.FC = () => {
         Object.values(subGroups).length;
       const median_competitor_price = Object.values(subGroups).reduce((sum, group) => sum + group.median_competitor_price, 0) /
         Object.values(subGroups).length;
-
+    
       const long_term_customer_average =
         Object.values(subGroups).reduce((sum, group) => sum + (group.long_term_customer_average || 0), 0) / Object.values(subGroups).length;
       const recent_period_average_move_in_rent =
@@ -884,23 +1118,42 @@ const GroupableTable: React.FC = () => {
         Object.values(subGroups).reduce((sum, group) => sum + (group.average_standard_rate || 0), 0) / Object.values(subGroups).length;
       const average_web_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.average_web_rate || 0), 0) / Object.values(subGroups).length;
+    
+      const third_quartile_occupancy = Object.values(subGroups).reduce((sum, group) => sum + group.third_quartile_occupancy, 0);
+      const unit_group_projected_occupancy = (
+        occupied_units + Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0)
+      ) / total_units;
+    
+      const projected_occupancy_impact =
+        Object.values(subGroups).reduce((sum, group) => sum + (group.projected_occupancy_impact || 0), 0) / Object.values(subGroups).length;
 
-      const projected_occupancy_impact = Object.values(subGroups).reduce((sum, group) => sum + group.projected_occupancy_impact, 0);
+    
+      const unit_group_leasing_velocity =
+        Object.values(subGroups).reduce((sum, group) => sum + (group.unit_group_leasing_velocity || 0), 0) / Object.values(subGroups).length;
+      const company_group_leasing_velocity =
+        Object.values(subGroups).reduce((sum, group) => sum + (group.company_group_leasing_velocity || 0), 0) / Object.values(subGroups).length;
       const leasing_velocity_impact =
         Object.values(subGroups).reduce((sum, group) => sum + (group.leasing_velocity_impact || 0), 0) / Object.values(subGroups).length;
       const competitor_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.competitor_impact || 0), 0) /
         Object.values(subGroups).length;
-
+    
       const suggested_web_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.suggested_web_rate || 0), 0) / Object.values(subGroups).length;
       const expected_web_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.expected_web_rate || 0), 0) / Object.values(subGroups).length;
-
+    
       return {
         items: [],
         total_units,
         occupied_units,
         occupancy_rate,
+        unrentable_count,
+        reserved_count,
+        damaged_count,
+        otherwise_unrentable_count,
+        available_units,
+        days_with_zero_availability,
+        days_with_low_availability,
         historical_move_ins_last_60_days_group,
         historical_move_ins_last_60_days_facility,
         historical_move_ins_last_60_days_company,
@@ -943,7 +1196,11 @@ const GroupableTable: React.FC = () => {
         recent_period_average_move_in_rent,
         average_standard_rate,
         average_web_rate,
+        unit_group_projected_occupancy,
+        third_quartile_occupancy,
         projected_occupancy_impact,
+        unit_group_leasing_velocity,
+        company_group_leasing_velocity,
         leasing_velocity_impact,
         competitor_impact,
         suggested_web_rate,
@@ -951,36 +1208,15 @@ const GroupableTable: React.FC = () => {
         subGroups,
       };
     };
+    
+    
+    
 
     if (data.length > 0) {
       const grouped = groupData(data, ['facility_name', 'group_type', 'area_bucket']);
       setGroupedData(grouped);
     }
   }, [data, filters]);
-
-  const toggleGroup = (groupPath: string) => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(groupPath)) {
-        next.delete(groupPath);
-      } else {
-        next.add(groupPath);
-      }
-      return next;
-    });
-  };
-
-  const toggleColumn = (column: string) => {
-    setHiddenColumns(prev => {
-      const next = new Set(prev);
-      if (next.has(column)) {
-        next.delete(column);
-      } else {
-        next.add(column);
-      }
-      return next;
-    });
-  };
 
   const handleUpdate = async (unitGroupId: string, effectiveWebRate: string | null) => {
     if (effectiveWebRate !== null) {
@@ -1015,184 +1251,153 @@ const GroupableTable: React.FC = () => {
   const handleEffectiveWebRateChange = (e: React.ChangeEvent<HTMLInputElement>, unitGroupId: string) => {
     const value = e.target.value.replace(/^\$/, '');
     setEffectiveWebRates(prevRates => ({ ...prevRates, [unitGroupId]: value }));
-  };  
-  
+  };
+
   const renderGroup = (group: GroupedData, groupPath: string = '', level: number = 0): React.ReactNode => {
+    const columns = [
+      { key: 'total_units', label: 'Total Units', format: 'number_no_decimal' },
+      { key: 'occupied_units', label: 'Occupied Units', format: 'number_no_decimal' },
+      { key: 'occupancy_rate', label: 'Occupancy Rate', format: 'percentage' },
+      { key: 'unrentable_count', label: 'Unrentable Units', format: 'number_no_decimal' },
+      { key: 'reserved_count', label: 'Reserved Units', format: 'number_no_decimal' },
+      { key: 'damaged_count', label: 'Damaged Units', format: 'number_no_decimal' },
+      { key: 'otherwise_unrentable_count', label: 'Otherwise Unrentable Units', format: 'number_no_decimal' },
+      { key: 'available_units', label: 'Available Units', format: 'number_no_decimal' },
+      { key: 'days_with_zero_availability', label: 'Days with No Availability', format: 'number_no_decimal' },
+      { key: 'days_with_low_availability', label: 'Days with Little Availability', format: 'number_no_decimal' },
+      { key: 'historical_move_ins_last_60_days_group', label: 'Historical Move-Ins Last 60 Days (Group)', format: 'number_one_decimal' },
+      { key: 'historical_move_ins_last_60_days_facility', label: 'Historical Move-Ins Last 60 Days (Facility)', format: 'number_one_decimal' },
+      { key: 'historical_move_ins_last_60_days_company', label: 'Historical Move-Ins Last 60 Days (Company)', format: 'number_one_decimal' },
+      { key: 'move_ins_last_60_days_group', label: 'Move-Ins Last 60 Days (Group)', format: 'number_no_decimal' },
+      { key: 'move_ins_last_60_days_facility', label: 'Move-Ins Last 60 Days (Facility)', format: 'number_no_decimal' },
+      { key: 'move_ins_last_60_days_company', label: 'Move-Ins Last 60 Days (Company)', format: 'number_no_decimal' },
+      { key: 'historical_move_ins_next_60_days_group', label: 'Historical Move-Ins Next 60 Days (Group)', format: 'number_one_decimal' },
+      { key: 'historical_move_ins_next_60_days_facility', label: 'Historical Move-Ins Next 60 Days (Facility)', format: 'number_one_decimal' },
+      { key: 'historical_move_ins_next_60_days_company', label: 'Historical Move-Ins Next 60 Days (Company)', format: 'number_one_decimal' },
+      { key: 'projected_move_ins_group', label: 'Projected Move-Ins (Group)', format: 'number_no_decimal' },
+      { key: 'projected_move_ins_facility', label: 'Projected Move-Ins (Facility)', format: 'number_one_decimal' },
+      { key: 'facility_projected_move_ins_scaled', label: 'Facility Projected Move-Ins (Scaled)', format: 'number_one_decimal' },
+      { key: 'blended_move_in_projection', label: 'Blended Move-In Projection', format: 'number_one_decimal' },
+      { key: 'facility_current_move_out_occupied_ratio_last_60_days', label: 'Facility Current Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
+      { key: 'facility_current_move_outs', label: 'Facility Current Move-Outs', format: 'number_no_decimal' },
+      { key: 'facility_current_occupied_units', label: 'Facility Current Occupied Units', format: 'number_no_decimal' },
+      { key: 'facility_average_historical_move_out_occupied_ratio_last_60_days', label: 'Facility Average Historical Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
+      { key: 'facility_historical_move_outs_last_60_days', label: 'Facility Historical Move-Outs Last 60 Days', format: 'number_one_decimal' },
+      { key: 'facility_historical_occupied_units_last_60_days', label: 'Facility Historical Occupied Units Last 60 Days', format: 'number_one_decimal' },
+      { key: 'facility_facility_current_vs_historical_move_out_occupied_ratio', label: 'Facility Current vs Historical Move-Out Occupied Ratio', format: 'number_one_decimal' },
+      { key: 'group_current_move_out_occupied_ratio_last_60_days', label: 'Group Current Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
+      { key: 'group_current_move_outs', label: 'Group Current Move-Outs', format: 'number_no_decimal' },
+      { key: 'group_current_occupied_units', label: 'Group Current Occupied Units', format: 'number_no_decimal' },
+      { key: 'group_average_historical_move_out_occupied_ratio_next_60_days', label: 'Group Average Historical Move-Out Occupied Ratio Next 60 Days', format: 'percentage' },
+      { key: 'group_historical_move_outs_next_60_days', label: 'Group Historical Move-Outs Next 60 Days', format: 'number_one_decimal' },
+      { key: 'group_historical_occupied_units_next_60_days', label: 'Group Historical Occupied Units Next 60 Days', format: 'number_one_decimal' },
+      { key: 'projected_move_out_occupied_ratio', label: 'Projected Move-Out Occupied Ratio', format: 'percentage' },
+      { key: 'projected_move_outs_next_60_days', label: 'Projected Move-Outs Next 60 Days', format: 'number_no_decimal' },
+      { key: 'historical_net_rentals', label: 'Historical Net Rentals', format: 'number_one_decimal' },
+      { key: 'current_period_net_rentals', label: 'Current Period Net Rentals', format: 'number_no_decimal' },
+      { key: 'projected_net_rentals', label: 'Projected Net Rentals', format: 'number_one_decimal' },
+      { key: 'net_available_units_last_60_days', label: 'Days with Low Availability', format: 'number_no_decimal' },
+      { key: 'days_since_last_rental', label: 'Days Since Last Rental', format: 'number_no_decimal' },
+      { key: 'competitor_count', label: 'Competitor Count', format: 'number_no_decimal' },
+      { key: 'competitor_percentage_cheaper', label: 'Competitor % Cheaper', format: 'percentage' },
+      { key: 'competitor_percentage_more_expensive', label: 'Competitor % More Expensive', format: 'percentage' },
+      { key: 'mean_competitor_price', label: 'Mean Competitor Rate', format: 'currency' },
+      { key: 'median_competitor_price', label: 'Median Competitor Rate', format: 'currency' },
+      { key: 'long_term_customer_average', label: 'Long Term Customer Average', format: 'currency' },
+      { key: 'recent_period_average_move_in_rent', label: 'Recent Period Average Move-In Rent', format: 'currency' },
+      { key: 'average_standard_rate', label: 'Current Standard Rate', format: 'currency' },
+      { key: 'average_web_rate', label: 'Current Web Rate', format: 'currency' },
+      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', format: 'percentage' },
+      { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact', format: 'percentage' },
+      { key: 'unit_group_leasing_velocity', label: 'Leasing Velocity (Group)', format: 'percentage' },
+      { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', format: 'percentage' },
+      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', format: 'percentage' },
+      { key: 'competitor_impact', label: 'Competitor Impact', format: 'percentage' },
+      { key: 'suggested_web_rate', label: 'Suggested Web Rate', format: 'currency' },
+      { key: 'effective_web_rate', label: 'Effective Web Rate', format: 'currency' },
+    ];
+  
+    // Separate pinned and non-pinned columns
+    const pinnedCols = columns.filter(col => pinnedColumns.includes(col.key));
+    const nonPinnedCols = columns.filter(col => !pinnedColumns.includes(col.key));
+    const sortedColumns = [...pinnedCols, ...nonPinnedCols];
+  
+    const formatValue = (value: number | string | null | undefined, format: string): string => {
+      if (value === null || value === undefined) return '';
+      switch (format) {
+        case 'number_no_decimal':
+          return parseFloat(value as string).toFixed(0);
+        case 'number_one_decimal':
+          return parseFloat(value as string).toFixed(1);
+        case 'percentage':
+          return (parseFloat(value as string) * 100).toFixed(1) + '%';
+        case 'currency':
+          return '$' + parseFloat(value as string).toFixed(2);
+        default:
+          return value as string;
+      }
+    };
+    
+  
     if (group.items.length > 0) {
       return group.items.map((item, index) => {
         const effectiveWebRate = effectiveWebRates[item.unit_group_id] ?? (item.suggested_web_rate !== null ? item.suggested_web_rate.toFixed(2) : null);
-  
         return (
           <DataRow key={item.unit_group_id} even={index % 2 === 0}>
-            <Td level={level} isSticky minimized={hiddenColumns.has('group')}>{item.group_name}</Td>
-            <Td minimized={hiddenColumns.has('total_units')}>{hiddenColumns.has('total_units') ? ' ' : item.total_units}</Td>
-            <Td minimized={hiddenColumns.has('occupied_units')}>{hiddenColumns.has('occupied_units') ? ' ' : item.occupied_units}</Td>
-            <Td minimized={hiddenColumns.has('occupancy_rate')}>{hiddenColumns.has('occupancy_rate') ? ' ' : (item.occupancy_rate * 100).toFixed(2) + '%'}</Td>
-  
-            <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}>{hiddenColumns.has('historical_move_ins_last_60_days_group') ? ' ' : item.historical_move_ins_last_60_days_group.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}>{hiddenColumns.has('historical_move_ins_last_60_days_facility') ? ' ' : item.historical_move_ins_last_60_days_facility.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')}>{hiddenColumns.has('historical_move_ins_last_60_days_company') ? ' ' : item.historical_move_ins_last_60_days_company.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('move_ins_last_60_days_group')}>{hiddenColumns.has('move_ins_last_60_days_group') ? ' ' : item.move_ins_last_60_days_group.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('move_ins_last_60_days_facility')}>{hiddenColumns.has('move_ins_last_60_days_facility') ? ' ' : item.move_ins_last_60_days_facility.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('move_ins_last_60_days_company')}>{hiddenColumns.has('move_ins_last_60_days_company') ? ' ' : item.move_ins_last_60_days_company.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')}>{hiddenColumns.has('historical_move_ins_next_60_days_group') ? ' ' : item.historical_move_ins_next_60_days_group.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}>{hiddenColumns.has('historical_move_ins_next_60_days_facility') ? ' ' : item.historical_move_ins_next_60_days_facility.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}>{hiddenColumns.has('historical_move_ins_next_60_days_company') ? ' ' : item.historical_move_ins_next_60_days_company.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('projected_move_ins_group')}>{hiddenColumns.has('projected_move_ins_group') ? ' ' : item.projected_move_ins_group.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('projected_move_ins_facility')}>{hiddenColumns.has('projected_move_ins_facility') ? ' ' : item.projected_move_ins_facility.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('facility_projected_move_ins_scaled')}>{hiddenColumns.has('facility_projected_move_ins_scaled') ? ' ' : item.facility_projected_move_ins_scaled.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('blended_move_in_projection')}>{hiddenColumns.has('blended_move_in_projection') ? ' ' : item.blended_move_in_projection.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days') ? ' ' : (item.facility_current_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('facility_current_move_outs')}>{hiddenColumns.has('facility_current_move_outs') ? ' ' : item.facility_current_move_outs}</Td>
-            <Td minimized={hiddenColumns.has('facility_current_occupied_units')}>{hiddenColumns.has('facility_current_occupied_units') ? ' ' : item.facility_current_occupied_units}</Td>
-  
-            <Td minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days') ? ' ' : (item.facility_average_historical_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')}>{hiddenColumns.has('facility_historical_move_outs_last_60_days') ? ' ' : item.facility_historical_move_outs_last_60_days.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')}>{hiddenColumns.has('facility_historical_occupied_units_last_60_days') ? ' ' : item.facility_historical_occupied_units_last_60_days.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')}>{hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio') ? ' ' : item.facility_facility_current_vs_historical_move_out_occupied_ratio?.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days') ? ' ' : (item.group_current_move_out_occupied_ratio_last_60_days * 100)?.toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('group_current_move_outs')}>{hiddenColumns.has('group_current_move_outs') ? ' ' : item.group_current_move_outs}</Td>
-            <Td minimized={hiddenColumns.has('group_current_occupied_units')}>{hiddenColumns.has('group_current_occupied_units') ? ' ' : item.group_current_occupied_units}</Td>
-  
-            <Td minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')}>{hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days') ? ' ' : (item.group_average_historical_move_out_occupied_ratio_next_60_days * 100)?.toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')}>{hiddenColumns.has('group_historical_move_outs_next_60_days') ? ' ' : item.group_historical_move_outs_next_60_days?.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')}>{hiddenColumns.has('group_historical_occupied_units_next_60_days') ? ' ' : item.group_historical_occupied_units_next_60_days?.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('projected_move_out_occupied_ratio')}>{hiddenColumns.has('projected_move_out_occupied_ratio') ? ' ' : (item.projected_move_out_occupied_ratio * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('projected_move_outs_next_60_days')}>{hiddenColumns.has('projected_move_outs_next_60_days') ? ' ' : item.projected_move_outs_next_60_days.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('historical_net_rentals')}>{hiddenColumns.has('historical_net_rentals') ? ' ' : item.historical_net_rentals.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : item.current_period_net_rentals.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : item.projected_net_rentals.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('net_available_units_last_60_days')}>{hiddenColumns.has('net_available_units_last_60_days') ? ' ' : item.net_available_units_last_60_days}</Td>
-            <Td minimized={hiddenColumns.has('days_since_last_rental')}>{hiddenColumns.has('days_since_last_rental') ? ' ' : item.days_since_last_rental}</Td>
-  
-            <Td minimized={hiddenColumns.has('competitor_count')}>{hiddenColumns.has('competitor_count') ? ' ' : item.competitor_count}</Td>
-            <Td minimized={hiddenColumns.has('competitor_percentage_cheaper')}>{hiddenColumns.has('competitor_percentage_cheaper') ? ' ' : (item.competitor_percentage_cheaper * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('competitor_percentage_more_expensive')}>{hiddenColumns.has('competitor_percentage_more_expensive') ? ' ' : (item.competitor_percentage_more_expensive * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('mean_competitor_price')}>{hiddenColumns.has('mean_competitor_price') ? ' ' : '$' + item.mean_competitor_price.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('median_competitor_price')}>{hiddenColumns.has('median_competitor_price') ? ' ' : '$' + item.median_competitor_price.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('long_term_customer_average')}>{hiddenColumns.has('long_term_customer_average') ? ' ' : '$' + (item.long_term_customer_average?.toFixed(2) ?? ' ')}</Td>
-            <Td minimized={hiddenColumns.has('recent_period_average_move_in_rent')}>{hiddenColumns.has('recent_period_average_move_in_rent') ? ' ' : '$' + (item.recent_period_average_move_in_rent?.toFixed(2) ?? ' ')}</Td>
-            <Td minimized={hiddenColumns.has('average_standard_rate')}>{hiddenColumns.has('average_standard_rate') ? ' ' : '$' + item.average_standard_rate.toFixed(2)}</Td>
-            <Td minimized={hiddenColumns.has('average_web_rate')}>{hiddenColumns.has('average_web_rate') ? ' ' : '$' + item.average_web_rate?.toFixed(2)}</Td>
-  
-            <Td minimized={hiddenColumns.has('projected_occupancy_impact')}>{hiddenColumns.has('projected_occupancy_impact') ? ' ' : (item.projected_occupancy_impact * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('leasing_velocity_impact')}>{hiddenColumns.has('leasing_velocity_impact') ? ' ' : (item.leasing_velocity_impact * 100).toFixed(2) + '%'}</Td>
-            <Td minimized={hiddenColumns.has('competitor_impact')}>{hiddenColumns.has('competitor_impact') ? ' ' : (item.competitor_impact * 100).toFixed(2) + '%'}</Td>
-  
-            <Td minimized={hiddenColumns.has('suggested_web_rate')}>{hiddenColumns.has('suggested_web_rate') ? ' ' : '$' + (item.suggested_web_rate?.toFixed(2) ?? ' ')}</Td>
-            <Td minimized={hiddenColumns.has('effective_web_rate')}>
-              {hiddenColumns.has('effective_web_rate') ? ' ' : (
-                <div>
-                  <EffectiveWebRateInput
-                    type="text"
-                    value={effectiveWebRate !== null ? `$${effectiveWebRate}` : ''}
-                    onChange={(e) => handleEffectiveWebRateChange(e, item.unit_group_id)}
-                  />
-                  <UpdateButton onClick={() => handleUpdate(item.unit_group_id, effectiveWebRate)}>Update</UpdateButton>
-                </div>
-              )}
+            <Td level={level} isSticky minimized={hiddenColumns.has('group')} isPinned={pinnedColumns.includes('group')} pinnedIndex={pinnedColumns.indexOf('group') + 1} even={index % 2 === 0}>{item.group_name}</Td>
+            {sortedColumns.map((column, colIndex) => (
+              <Td
+                key={column.key}
+                minimized={hiddenColumns.has(column.key)}
+                isPinned={pinnedColumns.includes(column.key)}
+                pinnedIndex={pinnedColumns.includes(column.key) ? pinnedColumns.indexOf(column.key) + 1 : undefined}
+                even={index % 2 === 0}
+              >
+                {hiddenColumns.has(column.key) ? ' ' : formatValue(item[column.key], column.format)}
+              </Td>
+            ))}
+            <Td minimized={hiddenColumns.has('effective_web_rate')} even={index % 2 === 0}>
+              {hiddenColumns.has('effective_web_rate') ? ' ' : effectiveWebRate}
             </Td>
           </DataRow>
         );
       });
     }
+  
     if (group.subGroups) {
       return Object.entries(group.subGroups).map(([key, subGroup], index) => {
         const newGroupPath = groupPath ? `${groupPath}-${key}` : key;
         const isExpanded = expandedGroups.has(newGroupPath);
+        const groupKeys = Object.values(subGroup.items).map((item) => item.unit_group_id);
         return (
           <React.Fragment key={newGroupPath}>
             {level === 0 && index > 0 && <SeparatorRow />}
             <GroupRow level={level} isExpanded={isExpanded} onClick={() => toggleGroup(newGroupPath)}>
-              <Td level={level} isSticky minimized={hiddenColumns.has('group')}>
+              <Td level={level} isSticky minimized={hiddenColumns.has('group')} isPinned={pinnedColumns.includes('group')} pinnedIndex={pinnedColumns.indexOf('group') + 1} even={index % 2 === 0}>
                 <ExpandIcon isExpanded={isExpanded}>▶</ExpandIcon>
                 {key}
               </Td>
-              <Td minimized={hiddenColumns.has('total_units')}>{hiddenColumns.has('total_units') ? ' ' : subGroup.total_units}</Td>
-              <Td minimized={hiddenColumns.has('occupied_units')}>{hiddenColumns.has('occupied_units') ? ' ' : subGroup.occupied_units}</Td>
-              <Td minimized={hiddenColumns.has('occupancy_rate')}>{hiddenColumns.has('occupancy_rate') ? ' ' : (subGroup.occupancy_rate * 100).toFixed(2) + '%'}</Td>
-
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}>{hiddenColumns.has('historical_move_ins_last_60_days_group') ? ' ' : subGroup.historical_move_ins_last_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}>{hiddenColumns.has('historical_move_ins_last_60_days_facility') ? ' ' : subGroup.historical_move_ins_last_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')}>{hiddenColumns.has('historical_move_ins_last_60_days_company') ? ' ' : subGroup.historical_move_ins_last_60_days_company.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_group')}>{hiddenColumns.has('move_ins_last_60_days_group') ? ' ' : subGroup.move_ins_last_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_facility')}>{hiddenColumns.has('move_ins_last_60_days_facility') ? ' ' : subGroup.move_ins_last_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('move_ins_last_60_days_company')}>{hiddenColumns.has('move_ins_last_60_days_company') ? ' ' : subGroup.move_ins_last_60_days_company.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')}>{hiddenColumns.has('historical_move_ins_next_60_days_group') ? ' ' : subGroup.historical_move_ins_next_60_days_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}>{hiddenColumns.has('historical_move_ins_next_60_days_facility') ? ' ' : subGroup.historical_move_ins_next_60_days_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}>{hiddenColumns.has('historical_move_ins_next_60_days_company') ? ' ' : subGroup.historical_move_ins_next_60_days_company.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('projected_move_ins_group')}>{hiddenColumns.has('projected_move_ins_group') ? ' ' : subGroup.projected_move_ins_group.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('projected_move_ins_facility')}>{hiddenColumns.has('projected_move_ins_facility') ? ' ' : subGroup.projected_move_ins_facility.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('facility_projected_move_ins_scaled')}>{hiddenColumns.has('facility_projected_move_ins_scaled') ? ' ' : subGroup.facility_projected_move_ins_scaled.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('blended_move_in_projection')}>{hiddenColumns.has('blended_move_in_projection') ? ' ' : subGroup.blended_move_in_projection.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.facility_current_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('facility_current_move_outs')}>{hiddenColumns.has('facility_current_move_outs') ? ' ' : subGroup.facility_current_move_outs}</Td>
-              <Td minimized={hiddenColumns.has('facility_current_occupied_units')}>{hiddenColumns.has('facility_current_occupied_units') ? ' ' : subGroup.facility_current_occupied_units}</Td>
-
-              <Td minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.facility_average_historical_move_out_occupied_ratio_last_60_days * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')}>{hiddenColumns.has('facility_historical_move_outs_last_60_days') ? ' ' : subGroup.facility_historical_move_outs_last_60_days.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')}>{hiddenColumns.has('facility_historical_occupied_units_last_60_days') ? ' ' : subGroup.facility_historical_occupied_units_last_60_days.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')}>{hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio') ? ' ' : subGroup.facility_facility_current_vs_historical_move_out_occupied_ratio?.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')}>{hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days') ? ' ' : (subGroup.group_current_move_out_occupied_ratio_last_60_days * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('group_current_move_outs')}>{hiddenColumns.has('group_current_move_outs') ? ' ' : subGroup.group_current_move_outs}</Td>
-              <Td minimized={hiddenColumns.has('group_current_occupied_units')}>{hiddenColumns.has('group_current_occupied_units') ? ' ' : subGroup.group_current_occupied_units}</Td>
-
-              <Td minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')}>{hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days') ? ' ' : (subGroup.group_average_historical_move_out_occupied_ratio_next_60_days * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')}>{hiddenColumns.has('group_historical_move_outs_next_60_days') ? ' ' : subGroup.group_historical_move_outs_next_60_days?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')}>{hiddenColumns.has('group_historical_occupied_units_next_60_days') ? ' ' : subGroup.group_historical_occupied_units_next_60_days?.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('projected_move_out_occupied_ratio')}>{hiddenColumns.has('projected_move_out_occupied_ratio') ? ' ' : (subGroup.projected_move_out_occupied_ratio * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('projected_move_outs_next_60_days')}>{hiddenColumns.has('projected_move_outs_next_60_days') ? ' ' : subGroup.projected_move_outs_next_60_days?.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('historical_net_rentals')}>{hiddenColumns.has('historical_net_rentals') ? ' ' : subGroup.historical_net_rentals?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('current_period_net_rentals')}>{hiddenColumns.has('current_period_net_rentals') ? ' ' : subGroup.current_period_net_rentals?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('projected_net_rentals')}>{hiddenColumns.has('projected_net_rentals') ? ' ' : subGroup.projected_net_rentals?.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('net_available_units_last_60_days')}>{hiddenColumns.has('net_available_units_last_60_days') ? ' ' : subGroup.net_available_units_last_60_days.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('days_since_last_rental')}>{hiddenColumns.has('days_since_last_rental') ? ' ' : subGroup.days_since_last_rental.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('competitor_count')}>{hiddenColumns.has('competitor_count') ? ' ' : subGroup.competitor_count}</Td>
-              <Td minimized={hiddenColumns.has('competitor_percentage_cheaper')}>{hiddenColumns.has('competitor_percentage_cheaper') ? ' ' : (subGroup.competitor_percentage_cheaper * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('competitor_percentage_more_expensive')}>{hiddenColumns.has('competitor_percentage_more_expensive') ? ' ' : (subGroup.competitor_percentage_more_expensive * 100)?.toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('mean_competitor_price')}>{hiddenColumns.has('mean_competitor_price') ? ' ' : '$' + subGroup.mean_competitor_price.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('median_competitor_price')}>{hiddenColumns.has('median_competitor_price') ? ' ' : '$' + subGroup.median_competitor_price.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('long_term_customer_average')}>{hiddenColumns.has('long_term_customer_average') ? ' ' : '$' + (subGroup.long_term_customer_average?.toFixed(2) ?? ' ')}</Td>
-              <Td minimized={hiddenColumns.has('recent_period_average_move_in_rent')}>{hiddenColumns.has('recent_period_average_move_in_rent') ? ' ' : '$' + (subGroup.recent_period_average_move_in_rent?.toFixed(2) ?? ' ')}</Td>
-              <Td minimized={hiddenColumns.has('average_standard_rate')}>{hiddenColumns.has('average_standard_rate') ? ' ' : '$' + subGroup.average_standard_rate.toFixed(2)}</Td>
-              <Td minimized={hiddenColumns.has('average_web_rate')}>{hiddenColumns.has('average_web_rate') ? ' ' : '$' + subGroup.average_web_rate.toFixed(2)}</Td>
-
-              <Td minimized={hiddenColumns.has('projected_occupancy_impact')}>{hiddenColumns.has('projected_occupancy_impact') ? ' ' : (subGroup.projected_occupancy_impact * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('leasing_velocity_impact')}>{hiddenColumns.has('leasing_velocity_impact') ? ' ' : (subGroup.leasing_velocity_impact * 100).toFixed(2) + '%'}</Td>
-              <Td minimized={hiddenColumns.has('competitor_impact')}>{hiddenColumns.has('competitor_impact') ? ' ' : (subGroup.competitor_impact * 100).toFixed(2) + '%'}</Td>
-
-              <Td minimized={hiddenColumns.has('suggested_web_rate')}>{hiddenColumns.has('suggested_web_rate') ? ' ' : '$' + (subGroup.suggested_web_rate?.toFixed(2) ?? ' ')}</Td>
+              {sortedColumns.map((column, colIndex) => (
+                <Td
+                  key={column.key}
+                  minimized={hiddenColumns.has(column.key)}
+                  isPinned={pinnedColumns.includes(column.key)}
+                  pinnedIndex={pinnedColumns.includes(column.key) ? pinnedColumns.indexOf(column.key) + 1 : undefined}
+                  even={index % 2 === 0}
+                >
+                  {hiddenColumns.has(column.key) ? ' ' : formatValue(subGroup[column.key], column.format)}
+                </Td>
+              ))}
             </GroupRow>
             {isExpanded && renderGroup(subGroup, newGroupPath, level + 1)}
           </React.Fragment>
         );
       });
     }
-
+  
     return null;
   };
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
+  
   const renderFilters = () => {
     let filterValues: string[] = [];
     let filterKey: 'facility' | 'type' | 'area';
@@ -1253,428 +1458,114 @@ const GroupableTable: React.FC = () => {
     );
   };
 
-  const renderHeader = () => (
-    <thead>
-      <tr>
-        <GroupHeaderTh
-          isSticky={true}
-          isStickyLeft={true}
-          minimized={hiddenColumns.has('group')}
-          onClick={() => toggleColumn('group')}
-          isGroupHeader={true}
-          title="This is the group row that contains row groups for facility name, group type (climate, non-climate, or parking/non-storage), and area bucket."
-        >
-          <span className="text-content">Group</span>
-        </GroupHeaderTh>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('total_units')}
-          onClick={() => toggleColumn('total_units')}
-          title="The total number of units in a particular group."
-        >
-          <span className="text-content">Total Units</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('occupied_units')}
-          onClick={() => toggleColumn('occupied_units')}
-          title="The number of units currently occupied in a particular group."
-        >
-          <span className="text-content">Occupied Units</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('occupancy_rate')}
-          onClick={() => toggleColumn('occupancy_rate')}
-          title="The ratio of occupied units to total units in a particular group. Formula: Occupancy Rate = Occupied Units / Total Units."
-        >
-          <span className="text-content">Occupancy Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_last_60_days_group')}
-          onClick={() => toggleColumn('historical_move_ins_last_60_days_group')}
-          title="The average number of move-ins for the group in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Group) = Average(move-ins for last 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Last 60 Days (Group)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_last_60_days_facility')}
-          onClick={() => toggleColumn('historical_move_ins_last_60_days_facility')}
-          title="The average number of move-ins for the facility in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Facility) = Average(move-ins for last 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Last 60 Days (Facility)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_last_60_days_company')}
-          onClick={() => toggleColumn('historical_move_ins_last_60_days_company')}
-          title="The average number of move-ins for the company in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Company) = Average(move-ins for last 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Last 60 Days (Company)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('move_ins_last_60_days_group')}
-          onClick={() => toggleColumn('move_ins_last_60_days_group')}
-          title="The actual number of move-ins for the group in the last 60 days."
-        >
-          <span className="text-content">Move-Ins Last 60 Days (Group)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('move_ins_last_60_days_facility')}
-          onClick={() => toggleColumn('move_ins_last_60_days_facility')}
-          title="The actual number of move-ins for the facility in the last 60 days."
-        >
-          <span className="text-content">Move-Ins Last 60 Days (Facility)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('move_ins_last_60_days_company')}
-          onClick={() => toggleColumn('move_ins_last_60_days_company')}
-          title="The actual number of move-ins for the company in the last 60 days."
-        >
-          <span className="text-content">Move-Ins Last 60 Days (Company)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_next_60_days_group')}
-          onClick={() => toggleColumn('historical_move_ins_next_60_days_group')}
-          title="The average number of move-ins for the group in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Group) = Average(move-ins for next 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Next 60 Days (Group)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_next_60_days_facility')}
-          onClick={() => toggleColumn('historical_move_ins_next_60_days_facility')}
-          title="The average number of move-ins for the facility in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Facility) = Average(move-ins for next 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Next 60 Days (Facility)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_move_ins_next_60_days_company')}
-          onClick={() => toggleColumn('historical_move_ins_next_60_days_company')}
-          title="The average number of move-ins for the company in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Company) = Average(move-ins for next 60 days over the past four years)."
-        >
-          <span className="text-content">Historical Move-Ins Next 60 Days (Company)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_move_ins_group')}
-          onClick={() => toggleColumn('projected_move_ins_group')}
-          title="The projected number of move-ins for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Group) = Move-Ins Last 60 Days (Group) / Historical Move-Ins Last 60 Days (Group) * Historical Move-Ins Next 60 Days (Group)."
-        >
-          <span className="text-content">Projected Move-Ins (Group)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_move_ins_facility')}
-          onClick={() => toggleColumn('projected_move_ins_facility')}
-          title="The projected number of move-ins for the facility in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Facility) = Move-Ins Last 60 Days (Facility) / Historical Move-Ins Last 60 Days (Facility) * Historical Move-Ins Next 60 Days (Facility)."
-        >
-          <span className="text-content">Projected Move-Ins (Facility)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_projected_move_ins_scaled')}
-          onClick={() => toggleColumn('facility_projected_move_ins_scaled')}
-          title="The projected number of move-ins for the facility, scaled to account for the total units in the group. Formula: Facility Projected Move-Ins (Scaled) = Projected Move-Ins (Facility) * (Total Units (Group) / Total Units (Facility))."
-        >
-          <span className="text-content">Facility Projected Move-Ins (Scaled)</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('blended_move_in_projection')}
-          onClick={() => toggleColumn('blended_move_in_projection')}
-          title="The average of the projected move-ins for the group and the scaled projected move-ins for the facility. Formula: Blended Move-In Projection = (Projected Move-Ins (Group) + Facility Projected Move-Ins (Scaled)) / 2."
-        >
-          <span className="text-content">Blended Move-In Projection</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_current_move_out_occupied_ratio_last_60_days')}
-          onClick={() => toggleColumn('facility_current_move_out_occupied_ratio_last_60_days')}
-          title="The ratio of move-outs to occupied units for the facility in the last 60 days. Formula: Facility Current Move-Out Occupied Ratio Last 60 Days = Facility Current Move-Outs / Facility Current Occupied Units."
-        >
-          <span className="text-content">Facility Current Move-Out Occupied Ratio Last 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_current_move_outs')}
-          onClick={() => toggleColumn('facility_current_move_outs')}
-          title="The actual number of move-outs for the facility in the last 60 days."
-        >
-          <span className="text-content">Facility Current Move-Outs</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_current_occupied_units')}
-          onClick={() => toggleColumn('facility_current_occupied_units')}
-          title="The number of units currently occupied in the facility."
-        >
-          <span className="text-content">Facility Current Occupied Units</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_average_historical_move_out_occupied_ratio_last_60_days')}
-          onClick={() => toggleColumn('facility_average_historical_move_out_occupied_ratio_last_60_days')}
-          title="The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years. Formula: historical average(move-outs last 60 days / occupied units this date)."
-        >
-          <span className="text-content">Facility Average Historical Move-Out Occupied Ratio Last 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_historical_move_outs_last_60_days')}
-          onClick={() => toggleColumn('facility_historical_move_outs_last_60_days')}
-          title="The average number of move-outs for the facility in the last 60 days, calculated over the past four years. Formula: Average(move-outs for the last 60 days over the past four years)."
-        >
-          <span className="text-content">Facility Historical Move-Outs Last 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_historical_occupied_units_last_60_days')}
-          onClick={() => toggleColumn('facility_historical_occupied_units_last_60_days')}
-          title="The average number of occupied units in the facility for the last 60 days, calculated over the past four years. Formula: Facility Historical Occupied Units Last 60 Days = Average(occupied units for the last 60 days over the past four years)."
-        >
-          <span className="text-content">Facility Historical Occupied Units Last 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('facility_facility_current_vs_historical_move_out_occupied_ratio')}
-          onClick={() => toggleColumn('facility_facility_current_vs_historical_move_out_occupied_ratio')}
-          title="The ratio of the current move-out occupied ratio to the historical average for the facility. Formula: Facility Current vs Historical Move-Out Occupied Ratio = Current Move-Out Occupied Ratio / Historical Move-Out Occupied Ratio."
-        >
-          <span className="text-content">Facility Current vs Historical Move-Out Occupied Ratio</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_current_move_out_occupied_ratio_last_60_days')}
-          onClick={() => toggleColumn('group_current_move_out_occupied_ratio_last_60_days')}
-          title="The ratio of move-outs to occupied units for the group in the last 60 days. Formula: Group Current Move-Out Occupied Ratio Last 60 Days = Group Current Move-Outs / Group Current Occupied Units."
-        >
-          <span className="text-content">Group Current Move-Out Occupied Ratio Last 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_current_move_outs')}
-          onClick={() => toggleColumn('group_current_move_outs')}
-          title="The actual number of move-outs for the group in the last 60 days."
-        >
-          <span className="text-content">Group Current Move-Outs</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_current_occupied_units')}
-          onClick={() => toggleColumn('group_current_occupied_units')}
-          title="The number of units currently occupied in the group."
-        >
-          <span className="text-content">Group Current Occupied Units</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_average_historical_move_out_occupied_ratio_next_60_days')}
-          onClick={() => toggleColumn('group_average_historical_move_out_occupied_ratio_next_60_days')}
-          title="The average ratio of move-outs to occupied units for the group in the next 60 days, calculated over the past four years. Formula: historical average(move-outs next 60 days / occupied units in 60 days)."
-        >
-          <span className="text-content">Group Average Historical Move-Out Occupied Ratio Next 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_historical_move_outs_next_60_days')}
-          onClick={() => toggleColumn('group_historical_move_outs_next_60_days')}
-          title="The average number of move-outs for the group in the next 60 days, calculated over the past four years. Formula: Average(move-outs for the next 60 days over the past four years)."
-        >
-          <span className="text-content">Group Historical Move-Outs Next 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('group_historical_occupied_units_next_60_days')}
-          onClick={() => toggleColumn('group_historical_occupied_units_next_60_days')}
-          title="The average number of occupied units in the group for the next 60 days, calculated over the past four years. Formula: Average(occupied units for the next 60 days over the past four years)."
-        >
-          <span className="text-content">Group Historical Occupied Units Next 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_move_out_occupied_ratio')}
-          onClick={() => toggleColumn('projected_move_out_occupied_ratio')}
-          title="The projected ratio of move-outs to occupied units in the next 60 days. Formula: (Company Move-Outs Last 60 Days / Company Average Historical Move-Outs Last 60 Days) * Group Average Historical Move-Out Occupied Ratio Next 60 Days."
-        >
-          <span className="text-content">Projected Move-Out Occupied Ratio</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_move_outs_next_60_days')}
-          onClick={() => toggleColumn('projected_move_outs_next_60_days')}
-          title="The projected number of move-outs in the next 60 days. Formula: Projected Move-Outs Next 60 Days = Projected Move-Out Occupied Ratio * Group Current Occupied Units."
-        >
-          <span className="text-content">Projected Move-Outs Next 60 Days</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('historical_net_rentals')}
-          onClick={() => toggleColumn('historical_net_rentals')}
-          title="The difference between historical move-ins and move-outs for the group in the last 60 days. Formula: Historical Net Rentals = Historical Move-Ins Last 60 Days (Group) - Historical Move-Outs Last 60 Days (Group)."
-        >
-          <span className="text-content">Historical Net Rentals</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('current_period_net_rentals')}
-          onClick={() => toggleColumn('current_period_net_rentals')}
-          title="The difference between actual move-ins and move-outs for the group in the last 60 days. Formula: Current Period Net Rentals = Move-Ins Last 60 Days (Group) - Group Current Move-Outs."
-        >
-          <span className="text-content">Current Period Net Rentals</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_net_rentals')}
-          onClick={() => toggleColumn('projected_net_rentals')}
-          title="The projected difference between move-ins and move-outs for the group in the next 60 days. Formula: Projected Net Rentals = Blended Move-In Projection - Projected Move-Outs Next 60 Days."
-        >
-          <span className="text-content">Projected Net Rentals</span>
-        </Th>
-        <Th
-        isSticky={true}
-        minimized={hiddenColumns.has('net_available_units_last_60_days')}
-        onClick={() => toggleColumn('net_available_units_last_60_days')}
-        title="The count of days over the last 60 days where the count of rentable units was 3 or lower. Rentable units is calculated as Total Units - Occupied Units - Unrentable Units."
-      >
-        <span className="text-content">Days with Low Availability</span>
-      </Th>
-      <Th
-        isSticky={true}
-        minimized={hiddenColumns.has('days_since_last_rental')}
-        onClick={() => toggleColumn('days_since_last_rental')}
-        title="The number of days since the group was last rented."
-      >
-        <span className="text-content">Days Since Last Rental</span>
-      </Th>
-
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('competitor_count')}
-          onClick={() => toggleColumn('competitor_count')}
-          title="The number of competitors for the group. A single competitor facility could have multiple groups that match ours."
-        >
-          <span className="text-content">Competitor Count</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('competitor_percentage_cheaper')}
-          onClick={() => toggleColumn('competitor_percentage_cheaper')}
-          title="The percentage of competitors with lower prices than the current web rate for the group. Formula: Competitor Percentage Cheaper = Number of competitors with lower prices / Competitor Count."
-        >
-          <span className="text-content">Competitor % Cheaper</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('competitor_percentage_more_expensive')}
-          onClick={() => toggleColumn('competitor_percentage_more_expensive')}
-          title="The percentage of competitors with higher prices than the current web rate for the group. Formula: Competitor Percentage More Expensive = Number of competitors with higher prices / Competitor Count."
-        >
-          <span className="text-content">Competitor % More Expensive</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('mean_competitor_price')}
-          onClick={() => toggleColumn('mean_competitor_price')}
-          title="The average price of competitors for the group. Formula: Mean Competitor Price = Average(price of competitors for the group)."
-        >
-          <span className="text-content">Mean Competitor Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('median_competitor_price')}
-          onClick={() => toggleColumn('median_competitor_price')}
-          title="The median price of competitors for the group. Formula: Median Competitor Price = Median(price of competitors for the group)."
-        >
-          <span className="text-content">Median Competitor Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('long_term_customer_average')}
-          onClick={() => toggleColumn('long_term_customer_average')}
-          title="The average rate paid by customers who have been in the units for more than a year. Formula: Long Term Customer Average = Average(rate paid by customers who have been in the units for more than a year)."
-        >
-          <span className="text-content">Long Term Customer Average</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('recent_period_average_move_in_rent')}
-          onClick={() => toggleColumn('recent_period_average_move_in_rent')}
-          title="The average rent for recent move-ins in the last 60 days. Formula: Recent Period Average Move-In Rent = Total rent for recent move-ins / Total square feet for recent move-ins * Average base area."
-        >
-          <span className="text-content">Recent Period Average Move-In Rent</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('average_standard_rate')}
-          onClick={() => toggleColumn('average_standard_rate')}
-          title="The current standard rate for the group. Formula: Average Standard Rate = Average(standard rate for the group)."
-        >
-          <span className="text-content">Current Standard Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('average_web_rate')}
-          onClick={() => toggleColumn('average_web_rate')}
-          title="The current web rate for the group. Formula: Average Web Rate = Average(web rate for the group)."
-        >
-          <span className="text-content">Current Web Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('projected_occupancy_impact')}
-          onClick={() => toggleColumn('projected_occupancy_impact')}
-          title="The projected occupancy impact measures the difference between a target occupancy rate and the company's projected occupancy, adjusted for unit group performance. Formula: Projected Occupancy Impact = (Target Occupancy - (Target Occupancy - Company Group Projected Occupancy) / 2) - Company Group Projected Occupancy, scaled by unit group performance."
-        >
-          <span className="text-content">Projected Occupancy Impact</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('leasing_velocity_impact')}
-          onClick={() => toggleColumn('leasing_velocity_impact')}
-          title="The leasing velocity impact is calculated by comparing the unit group's leasing speed to the company's historical averages. Formula: Leasing Velocity Impact = (Leasing Velocity - Leasing Velocity Step 2) / 3 (if greater), or (Leasing Velocity - Leasing Velocity Step 2) / 2 (if lesser), ensuring the impact reflects the relative leasing speeds."
-        >
-          <span className="text-content">Leasing Velocity Impact</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('competitor_impact')}
-          onClick={() => toggleColumn('competitor_impact')}
-          title="The competitor impact assesses how competitor pricing affects the unit group's rates. Formula: Competitor Impact = Normalized (math.sqrt(raw_competitor_impact + 1) - 1) * (Competitor Count / 8), where raw impact is derived from competitor price distribution."
-        >
-          <span className="text-content">Competitor Impact</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('suggested_web_rate')}
-          onClick={() => toggleColumn('suggested_web_rate')}
-          title="The suggested web rate combines the impacts from leasing velocity, projected occupancy, and competitor pricing to adjust the unit group's base rate. Formula: Suggested Web Rate = Base Rate * (1 + Leasing Velocity Impact) * (1 + Projected Occupancy Impact) * (1 + Competitor Impact)."
-        >
-          <span className="text-content">Suggested Web Rate</span>
-        </Th>
-        <Th
-          isSticky={true}
-          minimized={hiddenColumns.has('effective_web_rate')}
-          onClick={() => toggleColumn('effective_web_rate')}
-          title="The effective web rate allows you to manually override the suggested web rate. Whatever value is in this column will be the rate sent to storedge."
-        >
-          <span className="text-content">Effective Web Rate</span>
-        </Th>
-      </tr>
-    </thead>
-  );
+  const renderHeader = () => {
+    const columns = [
+      { key: 'total_units', label: 'Total Units', tooltip: 'The total number of units in a particular group.' },
+      { key: 'occupied_units', label: 'Occupied Units', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'occupancy_rate', label: 'Occupancy Rate', tooltip: 'Occupancy Rate: The ratio of occupied units to total units in a particular group. Formula: Occupancy Rate = Occupied Units / Total Units.' },
+      { key: 'unrentable_count', label: 'Unrentable Units', tooltip: 'The number of units currently occupied in a particular group.'},
+      { key: 'reserved_count', label: 'Reserved Units', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'damaged_count', label: 'Damaged Units', tooltip: 'The number of units currently occupied in a particular group.'},
+      { key: 'otherwise_unrentable_count', label: 'Otherwise Unrentable Units', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'available_units', label: 'Available Units', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'days_with_zero_availability', label: 'Days with No Availability', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'days_with_low_availability', label: 'Days with Little Availability', tooltip: 'The number of units currently occupied in a particular group.' },
+      { key: 'historical_move_ins_last_60_days_group', label: 'Historical Move-Ins Last 60 Days (Group)', tooltip: 'The average number of move-ins for the group in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Group) = Average(move-ins for last 60 days over the past four years).' },
+      { key: 'historical_move_ins_last_60_days_facility', label: 'Historical Move-Ins Last 60 Days (Facility)', tooltip: 'The average number of move-ins for the facility in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Facility) = Average(move-ins for last 60 days over the past four years).' },
+      { key: 'historical_move_ins_last_60_days_company', label: 'Historical Move-Ins Last 60 Days (Company)', tooltip: 'The average number of move-ins for the company in the last 60 days, calculated over the past four years. Formula: Historical Move-Ins Last 60 Days (Company) = Average(move-ins for last 60 days over the past four years).' },
+      { key: 'move_ins_last_60_days_group', label: 'Move-Ins Last 60 Days (Group)', tooltip: 'The actual number of move-ins for the group in the last 60 days.' },
+      { key: 'move_ins_last_60_days_facility', label: 'Move-Ins Last 60 Days (Facility)', tooltip: 'The actual number of move-ins for the facility in the last 60 days.' },
+      { key: 'move_ins_last_60_days_company', label: 'Move-Ins Last 60 Days (Company)', tooltip: 'The actual number of move-ins for the company in the last 60 days.' },
+      { key: 'historical_move_ins_next_60_days_group', label: 'Historical Move-Ins Next 60 Days (Group)', tooltip: 'The average number of move-ins for the group in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Group) = Average(move-ins for next 60 days over the past four years).' },
+      { key: 'historical_move_ins_next_60_days_facility', label: 'Historical Move-Ins Next 60 Days (Facility)', tooltip: 'The average number of move-ins for the facility in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Facility) = Average(move-ins for next 60 days over the past four years).' },
+      { key: 'historical_move_ins_next_60_days_company', label: 'Historical Move-Ins Next 60 Days (Company)', tooltip: 'The average number of move-ins for the company in the next 60 days, calculated over the past four years. Formula: Historical Move-Ins Next 60 Days (Company) = Average(move-ins for next 60 days over the past four years).' },
+      { key: 'projected_move_ins_group', label: 'Projected Move-Ins (Group)', tooltip: 'The projected number of move-ins for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Group) = Move-Ins Last 60 Days (Group) / Historical Move-Ins Last 60 Days (Group) * Historical Move-Ins Next 60 Days (Group).' },
+      { key: 'projected_move_ins_facility', label: 'Projected Move-Ins (Facility)', tooltip: 'The projected number of move-ins for the facility in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Facility) = Move-Ins Last 60 Days (Facility) / Historical Move-Ins Last 60 Days (Facility) * Historical Move-Ins Next 60 Days (Facility).' },
+      { key: 'facility_projected_move_ins_scaled', label: 'Facility Projected Move-Ins (Scaled)', tooltip: 'The projected number of move-ins for the facility, scaled to account for the total units in the group. Formula: Facility Projected Move-Ins (Scaled) = Projected Move-Ins (Facility) * (Total Units (Group) / Total Units (Facility)).' },
+      { key: 'blended_move_in_projection', label: 'Blended Move-In Projection', tooltip: 'The average of the projected move-ins for the group and the scaled projected move-ins for the facility. Formula: Blended Move-In Projection = (Projected Move-Ins (Group) + Facility Projected Move-Ins (Scaled)) / 2.' },
+      { key: 'facility_current_move_out_occupied_ratio_last_60_days', label: 'Facility Current Move-Out Occupied Ratio Last 60 Days', tooltip: 'The ratio of move-outs to occupied units for the facility in the last 60 days. Formula: Facility Current Move-Out Occupied Ratio Last 60 Days = Facility Current Move-Outs / Facility Current Occupied Units.' },
+      { key: 'facility_current_move_outs', label: 'Facility Current Move-Outs', tooltip: 'The actual number of move-outs for the facility in the last 60 days.' },
+      { key: 'facility_current_occupied_units', label: 'Facility Current Occupied Units', tooltip: 'The number of units currently occupied in the facility.' },
+      { key: 'facility_average_historical_move_out_occupied_ratio_last_60_days', label: 'Facility Average Historical Move-Out Occupied Ratio Last 60 Days', tooltip: 'The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years. Formula: historical average(move-outs last 60 days / occupied units this date).' },
+      { key: 'facility_historical_move_outs_last_60_days', label: 'Facility Historical Move-Outs Last 60 Days', tooltip: 'The average number of move-outs for the facility in the last 60 days, calculated over the past four years. Formula: Average(move-outs for the last 60 days over the past four years).' },
+      { key: 'facility_historical_occupied_units_last_60_days', label: 'Facility Historical Occupied Units Last 60 Days', tooltip: 'The average number of occupied units in the facility for the last 60 days, calculated over the past four years. Formula: Facility Historical Occupied Units Last 60 Days = Average(occupied units for the last 60 days over the past four years).' },
+      { key: 'facility_facility_current_vs_historical_move_out_occupied_ratio', label: 'Facility Current vs Historical Move-Out Occupied Ratio', tooltip: 'The ratio of the current move-out occupied ratio to the historical average for the facility. Formula: Facility Current vs Historical Move-Out Occupied Ratio = Current Move-Out Occupied Ratio / Historical Move-Out Occupied Ratio.' },
+      { key: 'group_current_move_out_occupied_ratio_last_60_days', label: 'Group Current Move-Out Occupied Ratio Last 60 Days', tooltip: 'The ratio of move-outs to occupied units for the group in the last 60 days. Formula: Group Current Move-Out Occupied Ratio Last 60 Days = Group Current Move-Outs / Group Current Occupied Units.' },
+      { key: 'group_current_move_outs', label: 'Group Current Move-Outs', tooltip: 'The actual number of move-outs for the group in the last 60 days.' },
+      { key: 'group_current_occupied_units', label: 'Group Current Occupied Units', tooltip: 'The number of units currently occupied in the group.' },
+      { key: 'group_average_historical_move_out_occupied_ratio_next_60_days', label: 'Group Average Historical Move-Out Occupied Ratio Next 60 Days', tooltip: 'The average ratio of move-outs to occupied units for the group in the next 60 days, calculated over the past four years. Formula: historical average(move-outs next 60 days / occupied units in 60 days).' },
+      { key: 'group_historical_move_outs_next_60_days', label: 'Group Historical Move-Outs Next 60 Days', tooltip: 'The average number of move-outs for the group in the next 60 days, calculated over the past four years. Formula: Average(move-outs for the next 60 days over the past four years).' },
+      { key: 'group_historical_occupied_units_next_60_days', label: 'Group Historical Occupied Units Next 60 Days', tooltip: 'The average number of occupied units in the group for the next 60 days, calculated over the past four years. Formula: Group Historical Occupied Units Next 60 Days = Average(occupied units for the next 60 days over the past four years).' },
+      { key: 'projected_move_out_occupied_ratio', label: 'Projected Move-Out Occupied Ratio', tooltip: 'The projected ratio of move-outs to occupied units for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Out Occupied Ratio = Historical Move-Out Occupied Ratio Next 60 Days * (Current Move-Outs / Historical Move-Outs Last 60 Days).' },
+      { key: 'projected_move_outs_next_60_days', label: 'Projected Move-Outs Next 60 Days', tooltip: 'The projected number of move-outs for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Outs Next 60 Days = Historical Move-Outs Next 60 Days * (Current Move-Outs / Historical Move-Outs Last 60 Days).' },
+      { key: 'historical_net_rentals', label: 'Historical Net Rentals', tooltip: 'The average net rentals for the group in the past, calculated as the difference between move-ins and move-outs over a given period. Formula: Historical Net Rentals = Average(move-ins - move-outs) over a given period.' },
+      { key: 'current_period_net_rentals', label: 'Current Period Net Rentals', tooltip: 'The net rentals for the group in the current period, calculated as the difference between move-ins and move-outs. Formula: Current Period Net Rentals = Move-Ins - Move-Outs.' },
+      { key: 'projected_net_rentals', label: 'Projected Net Rentals', tooltip: 'The projected net rentals for the group in the next 60 days, based on historical trends and current data. Formula: Projected Net Rentals = Projected Move-Ins - Projected Move-Outs.' },
+      { key: 'net_available_units_last_60_days', label: 'Days with Low Availability', tooltip: 'The number of days in the last 60 days when the available units were below a certain threshold. Formula: Net Available Units Last 60 Days = Count of days with available units below threshold in last 60 days.' },
+      { key: 'days_since_last_rental', label: 'Days Since Last Rental', tooltip: 'The number of days since the last rental was made in the group. Formula: Days Since Last Rental = Current Date - Last Rental Date.' },
+      { key: 'competitor_count', label: 'Competitor Count', tooltip: 'The number of competitors in the vicinity of the group.' },
+      { key: 'competitor_percentage_cheaper', label: 'Competitor % Cheaper', tooltip: 'The percentage of competitors offering lower rates compared to the group. Formula: Competitor % Cheaper = (Number of Competitors with Lower Rates / Total Competitors) * 100.' },
+      { key: 'competitor_percentage_more_expensive', label: 'Competitor % More Expensive', tooltip: 'The percentage of competitors offering higher rates compared to the group. Formula: Competitor % More Expensive = (Number of Competitors with Higher Rates / Total Competitors) * 100.' },
+      { key: 'mean_competitor_price', label: 'Mean Competitor Rate', tooltip: 'The average rate of competitors in the vicinity of the group. Formula: Mean Competitor Rate = Sum of Competitor Rates / Number of Competitors.' },
+      { key: 'median_competitor_price', label: 'Median Competitor Rate', tooltip: 'The median rate of competitors in the vicinity of the group. Formula: Median Competitor Rate = Median of Competitor Rates.' },
+      { key: 'long_term_customer_average', label: 'Long Term Customer Average', tooltip: 'The average tenure of long-term customers in the group. Formula: Long Term Customer Average = Average tenure of customers who have been with the group for more than a specified period.' },
+      { key: 'recent_period_average_move_in_rent', label: 'Recent Period Average Move-In Rent', tooltip: 'The average rent for move-ins during the recent period. Formula: Recent Period Average Move-In Rent = Sum of Rent for Move-Ins during Recent Period / Number of Move-Ins during Recent Period.' },
+      { key: 'average_standard_rate', label: 'Current Standard Rate', tooltip: 'The current standard rate for units in the group.' },
+      { key: 'average_web_rate', label: 'Current Web Rate', tooltip: 'The current web rate for units in the group.' },
+      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', tooltip: 'The projected occupancy rate for the group. Formula: Projected Occupancy = Projected Occupied Units / Total Units.' },
+      { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact', tooltip: 'The impact of projected move-ins and move-outs on the occupancy rate. Formula: Projected Occupancy Impact = Projected Occupancy - Current Occupancy.' },
+      { key: 'unit_group_leasing_velocity', label: 'Leasing Velocity (Group)', tooltip: 'The rate at which units are leased in the group. Formula: Leasing Velocity = Number of Leases / Time Period.' },
+      { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', tooltip: 'The rate at which units are leased in the company. Formula: Leasing Velocity = Number of Leases / Time Period.' },
+      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', tooltip: 'The impact of leasing velocity on the group\'s occupancy rate. Formula: Leasing Velocity Impact = Leasing Velocity * Time Period.' },
+      { key: 'competitor_impact', label: 'Competitor Impact', tooltip: 'The impact of competitors on the group\'s occupancy rate. Formula: Competitor Impact = ((IF(% More Expensive > 0.6, % More Expensive - 0.6, IF(% More Expensive < 0.4, % More Expensive - 0.4, 0), 0))) * Competitor Count / 8).' },
+      { key: 'suggested_web_rate', label: 'Suggested Web Rate', tooltip: 'The suggested web rate for units in the group, based on market analysis and competitor rates.' },
+      { key: 'effective_web_rate', label: 'Effective Web Rate', tooltip: 'The effective web rate for units in the group, considering discounts and promotions.' }
+    ];
   
+    // Separate pinned and non-pinned columns
+    const pinnedCols = columns.filter(col => pinnedColumns.includes(col.key));
+    const nonPinnedCols = columns.filter(col => !pinnedColumns.includes(col.key));
+    const sortedColumns = [...pinnedCols, ...nonPinnedCols];
+  
+    return (
+      <thead>
+        <tr>
+          <GroupHeaderTh
+            isSticky={true}
+            isStickyLeft={true}
+            minimized={hiddenColumns.has('group')}
+            onClick={() => toggleColumn('group')}
+            isGroupHeader={true}
+            title="This is the group row that contains row groups for facility name, group type (climate, non-climate, or parking/non-storage), and area bucket."
+          >
+            <span className="text-content">Group</span>
+          </GroupHeaderTh>
+          {sortedColumns.map((column, index) => (
+            <Th
+              key={column.key}
+              isSticky={true}
+              minimized={hiddenColumns.has(column.key)}
+              onClick={() => toggleColumn(column.key)}
+              title={column.tooltip}
+              isPinned={pinnedColumns.includes(column.key)}
+              pinnedIndex={pinnedColumns.includes(column.key) ? pinnedColumns.indexOf(column.key) + 1 : undefined}
+            >
+              <span className="text-content">{column.label}</span>
+              <span className="pin-icon" onClick={(e) => { e.stopPropagation(); togglePinColumn(column.key); }}>
+                📌
+              </span>
+            </Th>
+          ))}
+        </tr>
+      </thead>
+    );
+  };
+  
+   
   return (
     <PageContainer>
       <ToastContainer />
-      <TableWrapper>
+      <TableWrapper ref={tableWrapperRef}>
         <Table>
           {renderHeader()}
           <tbody>{renderGroup(groupedData)}</tbody>
