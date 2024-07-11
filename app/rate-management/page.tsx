@@ -1518,7 +1518,7 @@ const GroupableTable: React.FC = () => {
       { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', tooltip: 'The rate at which units are leased in the company. Formula: Leasing Velocity = Number of Leases / Time Period.' },
       { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', tooltip: 'The impact of leasing velocity on the group\'s occupancy rate. Formula: Leasing Velocity Impact = Leasing Velocity * Time Period.' },
       { key: 'competitor_impact', label: 'Competitor Impact', tooltip: 'The impact of competitors on the group\'s occupancy rate. Formula: Competitor Impact = ((IF(% More Expensive > 0.6, % More Expensive - 0.6, IF(% More Expensive < 0.4, % More Expensive - 0.4, 0), 0))) * Competitor Count / 8).' },
-      { key: 'suggested_web_rate', label: 'Suggested Web Rate', tooltip: 'The suggested web rate for units in the group, based on market analysis and competitor rates.' },
+      { key: 'suggested_web_rate', label: 'Suggested Web Rate', tooltip: 'The suggested web rate for units in the group.' },
       { key: 'effective_web_rate', label: 'Effective Web Rate', tooltip: 'The effective web rate for units in the group, considering discounts and promotions.' }
     ];
   
