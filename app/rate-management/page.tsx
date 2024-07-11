@@ -189,7 +189,7 @@ const PageContainer = styled.div`
 
 
 const TableWrapper = styled.div<StyledComponentProps>`
-  width: 100vw;
+  width: 75vw;
   height: 90vh;
   overflow: auto;
   position: relative;
@@ -1222,7 +1222,7 @@ const GroupableTable: React.FC = () => {
       { key: 'historical_move_ins_next_60_days_group', label: 'Historical Move-Ins Next 60 Days (Group)', format: 'number_one_decimal' },
       { key: 'historical_move_ins_next_60_days_facility', label: 'Historical Move-Ins Next 60 Days (Facility)', format: 'number_one_decimal' },
       { key: 'historical_move_ins_next_60_days_company', label: 'Historical Move-Ins Next 60 Days (Company)', format: 'number_one_decimal' },
-      { key: 'projected_move_ins_group', label: 'Projected Move-Ins (Group)', format: 'number_no_decimal' },
+      { key: 'projected_move_ins_group', label: 'Projected Move-Ins (Group)', format: 'number_one_decimal' },
       { key: 'projected_move_ins_facility', label: 'Projected Move-Ins (Facility)', format: 'number_one_decimal' },
       { key: 'facility_projected_move_ins_scaled', label: 'Facility Projected Move-Ins (Scaled)', format: 'number_one_decimal' },
       { key: 'blended_move_in_projection', label: 'Blended Move-In Projection', format: 'number_one_decimal' },
@@ -1516,6 +1516,7 @@ const GroupableTable: React.FC = () => {
           <tbody>{renderGroup(groupedData)}</tbody>
         </Table>
       </TableWrapper>
+      {renderFilters()}
     </PageContainer>
   );
 };
