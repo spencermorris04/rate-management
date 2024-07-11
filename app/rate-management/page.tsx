@@ -189,7 +189,7 @@ const PageContainer = styled.div`
 
 
 const TableWrapper = styled.div<StyledComponentProps>`
-  width: 75vw;
+  width: 100vw;
   height: 90vh;
   overflow: auto;
   position: relative;
@@ -1516,7 +1516,6 @@ const GroupableTable: React.FC = () => {
           <tbody>{renderGroup(groupedData)}</tbody>
         </Table>
       </TableWrapper>
-      {renderFilters()}
     </PageContainer>
   );
 };
