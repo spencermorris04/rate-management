@@ -42,13 +42,13 @@ interface RateManagementItem {
   projected_move_ins_facility: number;
   facility_projected_move_ins_scaled: number;
   blended_move_in_projection: number;
-  facility_current_move_out_occupied_ratio_last_60_days: number;
-  facility_current_move_outs: number;
-  facility_current_occupied_units: number;
-  facility_average_historical_move_out_occupied_ratio_last_60_days: number;
-  facility_historical_move_outs_last_60_days: number;
-  facility_historical_occupied_units_last_60_days: number;
-  facility_facility_current_vs_historical_move_out_occupied_ratio: number;
+  company_current_move_out_occupied_ratio_last_60_days: number;
+  company_current_move_outs: number;
+  company_current_occupied_units: number;
+  company_average_historical_move_out_occupied_ratio_last_60_days: number;
+  company_historical_move_outs_last_60_days: number;
+  company_historical_occupied_units_last_60_days: number;
+  company_current_vs_historical_move_out_occupied_ratio: number;
   group_current_move_out_occupied_ratio_last_60_days: number;
   group_current_move_outs: number;
   group_current_occupied_units: number;
@@ -108,13 +108,13 @@ interface GroupedData {
   projected_move_ins_facility: number;
   facility_projected_move_ins_scaled: number;
   blended_move_in_projection: number;
-  facility_current_move_out_occupied_ratio_last_60_days: number;
-  facility_current_move_outs: number;
-  facility_current_occupied_units: number;
-  facility_average_historical_move_out_occupied_ratio_last_60_days: number;
-  facility_historical_move_outs_last_60_days: number;
-  facility_historical_occupied_units_last_60_days: number;
-  facility_facility_current_vs_historical_move_out_occupied_ratio: number;
+  company_current_move_out_occupied_ratio_last_60_days: number;
+  company_current_move_outs: number;
+  company_current_occupied_units: number;
+  company_average_historical_move_out_occupied_ratio_last_60_days: number;
+  company_historical_move_outs_last_60_days: number;
+  company_historical_occupied_units_last_60_days: number;
+  company_current_vs_historical_move_out_occupied_ratio: number;
   group_current_move_out_occupied_ratio_last_60_days: number;
   group_current_move_outs: number;
   group_current_occupied_units: number;
@@ -328,9 +328,9 @@ const Th = styled.th<StyledComponentProps>`
   border: none;
   padding: 16px 12px;
   text-align: center;
-  width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
+  width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
+  min-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
+  max-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
   position: relative;
   color: ${({ minimized, isGroupHeader }) => (isGroupHeader ? 'white' : minimized ? '#FAC898' : '#000000')};
   border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')};
@@ -367,15 +367,16 @@ const Th = styled.th<StyledComponentProps>`
     position: absolute;
     left: 0;
     right: 0;
+    padding: 0px 0px; 
     text-align: center;
-    font-size: 16px;
+    font-size: 14px;
     color: ${({ minimized }) => (minimized ? '#000' : 'transparent')};
   }
 
   @media (max-width: 768px) {
-    width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
-    min-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
-    max-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
+    min-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
+    max-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
     font-size: 12px; /* Smaller font size for mobile view */
   }
   ${({ isPinned, pinnedIndex }) =>
@@ -391,7 +392,8 @@ const Th = styled.th<StyledComponentProps>`
   .pin-icon {
     position: absolute;
     top: 2px;
-    right: 2px;
+    right: 6px;
+    font-size: 8px;
     cursor: pointer;
   }
 `;
@@ -400,9 +402,9 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean; 
   border: none;
   padding: 18px 8px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
-  width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  min-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
-  max-width: ${({ minimized }) => (minimized ? '20px' : `${COLUMN_WIDTH}px`)};
+  width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
+  min-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
+  max-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH}px`)};
   text-align: center;
   background-color: ${({ even }) => (even ? '#f9f9f9' : 'white')}; /* Apply even and odd background color */
 
@@ -426,9 +428,9 @@ const Td = styled.td<{ level?: number; isSticky?: boolean; minimized?: boolean; 
   `}
 
   @media (max-width: 768px) {
-    width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
-    min-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
-    max-width: ${({ minimized }) => (minimized ? '10px' : `${COLUMN_WIDTH / 2}px`)};
+    width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
+    min-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
+    max-width: ${({ minimized }) => (minimized ? '5px' : `${COLUMN_WIDTH / 2}px`)};
   }
 `;
 
@@ -517,7 +519,7 @@ const HideButton = styled.button`
   position: absolute;
   top: 0;
   right: 0;
-  padding: 0 4px 0 0; /* Add 2px of padding to the right */
+  padding: 0 0px 0 0; /* Add 2px of padding to the right */
   background: none;
   border: none;
   font-size: 12px;
@@ -603,20 +605,21 @@ const GroupableTable: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'facility' | 'type' | 'area'>('facility');
   const [editingEffectiveWebRate, setEditingEffectiveWebRate] = useState<{ [key: string]: number | null }>({});
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set([
-    'projected_move_ins_group',
+    'reserved_count',
+    'damaged_count',
+    'otherwise_unrentable_count',
     'projected_move_ins_facility',
-    'facility_projected_move_ins_scaled',
-    'facility_current_move_outs',
-    'facility_current_occupied_units',
-    'facility_historical_move_outs_last_60_days',
-    'facility_historical_occupied_units_last_60_days',
+    'company_current_move_outs',
+    'company_current_occupied_units',
+    'company_historical_move_outs_last_60_days',
+    'company_historical_occupied_units_last_60_days',
     'group_historical_move_outs_next_60_days',
     'group_historical_occupied_units_next_60_days',
     'group_current_move_outs',
     'group_current_occupied_units',
     'historical_net_rentals',
     'current_period_net_rentals',
-    'competitor_percentage_more_expensive',
+    'competitor_percentage_cheaper',
     'median_competitor_price',
     'historical_move_ins_next_60_days_facility',
     'historical_move_ins_next_60_days_company',
@@ -624,6 +627,12 @@ const GroupableTable: React.FC = () => {
     'move_ins_last_60_days_company',
     'historical_move_ins_last_60_days_facility',
     'historical_move_ins_last_60_days_company',
+    'average_standard_rate',
+    'unit_group_leasing_velocity',
+    'company_group_leasing_velocity',
+    'days_since_last_rental',
+    'days_with_zero_availability',
+    'days_with_low_availability'
   ]));
 
   const tableWrapperRef = useRef<HTMLDivElement>(null);
@@ -731,8 +740,6 @@ const GroupableTable: React.FC = () => {
         const damaged_count = items.reduce((sum, item) => sum + item.damaged_count, 0);
         const otherwise_unrentable_count = items.reduce((sum, item) => sum + item.otherwise_unrentable_count, 0);
         const available_units = items.reduce((sum, item) => sum + item.available_units, 0);
-        const days_with_zero_availability = median(items.map((item) => item.days_with_zero_availability));
-        const days_with_low_availability = median(items.map((item) => item.days_with_low_availability));
     
         const historical_move_ins_last_60_days_group = items.reduce(
           (sum, item) => sum + item.historical_move_ins_last_60_days_group,
@@ -741,13 +748,9 @@ const GroupableTable: React.FC = () => {
         const historical_move_ins_last_60_days_facility = median(
           items.map((item) => item.historical_move_ins_last_60_days_facility)
         );
-        const historical_move_ins_last_60_days_company = median(
-          items.map((item) => item.historical_move_ins_last_60_days_company)
-        );
     
         const move_ins_last_60_days_group = items.reduce((sum, item) => sum + item.move_ins_last_60_days_group, 0);
         const move_ins_last_60_days_facility = median(items.map((item) => item.move_ins_last_60_days_facility));
-        const move_ins_last_60_days_company = median(items.map((item) => item.move_ins_last_60_days_company));
     
         const historical_move_ins_next_60_days_group = items.reduce(
           (sum, item) => sum + item.historical_move_ins_next_60_days_group,
@@ -755,9 +758,6 @@ const GroupableTable: React.FC = () => {
         );
         const historical_move_ins_next_60_days_facility = median(
           items.map((item) => item.historical_move_ins_next_60_days_facility)
-        );
-        const historical_move_ins_next_60_days_company = median(
-          items.map((item) => item.historical_move_ins_next_60_days_company)
         );
     
         const projected_move_ins_group = items.reduce((sum, item) => sum + item.projected_move_ins_group, 0);
@@ -768,32 +768,32 @@ const GroupableTable: React.FC = () => {
         );
         const blended_move_in_projection = items.reduce((sum, item) => sum + item.blended_move_in_projection, 0);
     
-        const facility_current_move_out_occupied_ratio_last_60_days =
-          items.reduce((sum, item) => sum + item.facility_current_move_outs, 0) /
-          items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0);
+        const company_current_move_out_occupied_ratio_last_60_days =
+          items.reduce((sum, item) => sum + item.company_current_move_outs, 0) /
+          items.reduce((sum, item) => sum + item.company_current_occupied_units, 0);
         
-        const facility_current_move_outs = items.reduce((sum, item) => sum + item.facility_current_move_outs, 0);
-        const facility_current_occupied_units = items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0);
+        const company_current_move_outs = items.reduce((sum, item) => sum + item.company_current_move_outs, 0);
+        const company_current_occupied_units = items.reduce((sum, item) => sum + item.company_current_occupied_units, 0);
     
-        const facility_average_historical_move_out_occupied_ratio_last_60_days =
-          items.reduce((sum, item) => sum + item.facility_historical_move_outs_last_60_days, 0) /
-          items.reduce((sum, item) => sum + item.facility_historical_occupied_units_last_60_days, 0);
+        const company_average_historical_move_out_occupied_ratio_last_60_days =
+          items.reduce((sum, item) => sum + item.company_historical_move_outs_last_60_days, 0) /
+          items.reduce((sum, item) => sum + item.company_historical_occupied_units_last_60_days, 0);
         
-        const facility_historical_move_outs_last_60_days = items.reduce(
-          (sum, item) => sum + item.facility_historical_move_outs_last_60_days,
+        const company_historical_move_outs_last_60_days = items.reduce(
+          (sum, item) => sum + item.company_historical_move_outs_last_60_days,
           0
         );
-        const facility_historical_occupied_units_last_60_days = items.reduce(
-          (sum, item) => sum + item.facility_historical_occupied_units_last_60_days,
+        const company_historical_occupied_units_last_60_days = items.reduce(
+          (sum, item) => sum + item.company_historical_occupied_units_last_60_days,
           0
         );
     
-        const facility_facility_current_vs_historical_move_out_occupied_ratio =
-          items.reduce((sum, item) => sum + item.facility_current_move_outs, 0) /
-          items.reduce((sum, item) => sum + item.facility_current_occupied_units, 0) /
+        const company_current_vs_historical_move_out_occupied_ratio =
+          items.reduce((sum, item) => sum + item.company_current_move_outs, 0) /
+          items.reduce((sum, item) => sum + item.company_current_occupied_units, 0) /
           (
-            items.reduce((sum, item) => sum + item.facility_historical_move_outs_last_60_days, 0) /
-            items.reduce((sum, item) => sum + item.facility_historical_occupied_units_last_60_days, 0)
+            items.reduce((sum, item) => sum + item.company_historical_move_outs_last_60_days, 0) /
+            items.reduce((sum, item) => sum + item.company_historical_occupied_units_last_60_days, 0)
           );
     
         const group_current_move_out_occupied_ratio_last_60_days =
@@ -825,33 +825,25 @@ const GroupableTable: React.FC = () => {
         const historical_net_rentals = items.reduce((sum, item) => sum + item.historical_net_rentals, 0);
         const current_period_net_rentals = items.reduce((sum, item) => sum + item.current_period_net_rentals, 0);
         const projected_net_rentals = items.reduce((sum, item) => sum + item.projected_net_rentals, 0);
+
+        const unit_group_projected_occupancy = (
+          items.reduce((sum, item) => sum + item.occupied_units, 0) + items.reduce((sum, item) => sum + item.projected_net_rentals, 0)
+        ) / total_units;
     
         const net_available_units_last_60_days = (
           items.reduce((sum, item) => sum + item.net_available_units_last_60_days, 0) / items.length
         );
-        const days_since_last_rental = (
-          items.reduce((sum, item) => sum + item.days_since_last_rental, 0) / items.length
-        );
-    
         const competitor_count = items.reduce((sum, item) => sum + item.competitor_count, 0);
         const competitor_percentage_cheaper =
           items.reduce((sum, item) => sum + item.competitor_percentage_cheaper, 0) / items.length;
         const competitor_percentage_more_expensive =
           items.reduce((sum, item) => sum + item.competitor_percentage_more_expensive, 0) / items.length;
-        const mean_competitor_price = items.reduce((sum, item) => sum + item.mean_competitor_price, 0) / items.length;
-        const median_competitor_price = items.reduce((sum, item) => sum + item.median_competitor_price, 0) / items.length;
-    
-        const long_term_customer_average =
-          items.reduce((sum, item) => sum + (item.long_term_customer_average || 0), 0) / items.length;
-        const recent_period_average_move_in_rent =
-          items.reduce((sum, item) => sum + (item.recent_period_average_move_in_rent || 0), 0) / items.length;
+
         const average_standard_rate = items.reduce((sum, item) => sum + item.average_standard_rate, 0) / items.length;
         const average_web_rate = items.reduce((sum, item) => sum + item.average_web_rate, 0) / items.length;
     
         const third_quartile_occupancy = items.reduce((sum, item) => sum + item.third_quartile_occupancy, 0);
-        const unit_group_projected_occupancy = (
-          items.reduce((sum, item) => sum + item.occupied_units, 0) + items.reduce((sum, item) => sum + item.projected_net_rentals, 0)
-        ) / total_units;
+
     
         const projected_occupancy_impact = items.reduce((sum, item) => sum + (item.projected_occupancy_impact || 0), 0) / items.length;
     
@@ -878,28 +870,23 @@ const GroupableTable: React.FC = () => {
           damaged_count,
           otherwise_unrentable_count,
           available_units,
-          days_with_zero_availability,
-          days_with_low_availability,
           historical_move_ins_last_60_days_group,
           historical_move_ins_last_60_days_facility,
-          historical_move_ins_last_60_days_company,
           move_ins_last_60_days_group,
           move_ins_last_60_days_facility,
-          move_ins_last_60_days_company,
           historical_move_ins_next_60_days_group,
           historical_move_ins_next_60_days_facility,
-          historical_move_ins_next_60_days_company,
           projected_move_ins_group,
           projected_move_ins_facility,
           facility_projected_move_ins_scaled,
           blended_move_in_projection,
-          facility_current_move_out_occupied_ratio_last_60_days,
-          facility_current_move_outs,
-          facility_current_occupied_units,
-          facility_average_historical_move_out_occupied_ratio_last_60_days,
-          facility_historical_move_outs_last_60_days,
-          facility_historical_occupied_units_last_60_days,
-          facility_facility_current_vs_historical_move_out_occupied_ratio,
+          company_current_move_out_occupied_ratio_last_60_days,
+          company_current_move_outs,
+          company_current_occupied_units,
+          company_average_historical_move_out_occupied_ratio_last_60_days,
+          company_historical_move_outs_last_60_days,
+          company_historical_occupied_units_last_60_days,
+          company_current_vs_historical_move_out_occupied_ratio,
           group_current_move_out_occupied_ratio_last_60_days,
           group_current_move_outs,
           group_current_occupied_units,
@@ -912,14 +899,10 @@ const GroupableTable: React.FC = () => {
           current_period_net_rentals,
           projected_net_rentals,
           net_available_units_last_60_days,
-          days_since_last_rental,
           competitor_count,
           competitor_percentage_cheaper,
           competitor_percentage_more_expensive,
-          mean_competitor_price,
-          median_competitor_price,
-          long_term_customer_average,
-          recent_period_average_move_in_rent,
+
           average_standard_rate,
           average_web_rate,
           unit_group_projected_occupancy,
@@ -969,12 +952,6 @@ const GroupableTable: React.FC = () => {
       const damaged_count = Object.values(subGroups).reduce((sum, group) => sum + group.damaged_count, 0);
       const otherwise_unrentable_count = Object.values(subGroups).reduce((sum, group) => sum + group.otherwise_unrentable_count, 0);
       const available_units = Object.values(subGroups).reduce((sum, group) => sum + group.available_units, 0);
-      const days_with_zero_availability =
-      Object.values(subGroups).reduce((sum, group) => sum + group.days_with_zero_availability, 0) /
-      Object.values(subGroups).length;
-      const days_with_low_availability =
-      Object.values(subGroups).reduce((sum, group) => sum + group.days_with_low_availability, 0) /
-      Object.values(subGroups).length;
 
       const historical_move_ins_last_60_days_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.historical_move_ins_last_60_days_group,
@@ -982,9 +959,6 @@ const GroupableTable: React.FC = () => {
       );
       const historical_move_ins_last_60_days_facility =
         Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_facility, 0) /
-        Object.values(subGroups).length;
-      const historical_move_ins_last_60_days_company =
-        Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_last_60_days_company, 0) /
         Object.values(subGroups).length;
     
       const move_ins_last_60_days_group = Object.values(subGroups).reduce(
@@ -994,9 +968,6 @@ const GroupableTable: React.FC = () => {
       const move_ins_last_60_days_facility =
         Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_facility, 0) /
         Object.values(subGroups).length;
-      const move_ins_last_60_days_company =
-        Object.values(subGroups).reduce((sum, group) => sum + group.move_ins_last_60_days_company, 0) /
-        Object.values(subGroups).length;
     
       const historical_move_ins_next_60_days_group = Object.values(subGroups).reduce(
         (sum, group) => sum + group.historical_move_ins_next_60_days_group,
@@ -1004,9 +975,6 @@ const GroupableTable: React.FC = () => {
       );
       const historical_move_ins_next_60_days_facility =
         Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_facility, 0) /
-        Object.values(subGroups).length;
-      const historical_move_ins_next_60_days_company =
-        Object.values(subGroups).reduce((sum, group) => sum + group.historical_move_ins_next_60_days_company, 0) /
         Object.values(subGroups).length;
     
       const projected_move_ins_group = Object.values(subGroups).reduce(
@@ -1025,36 +993,36 @@ const GroupableTable: React.FC = () => {
         0
       );
     
-      const facility_current_move_out_occupied_ratio_last_60_days =
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_move_outs, 0) /
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_occupied_units, 0);
+      const company_current_move_out_occupied_ratio_last_60_days =
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_current_move_outs, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_current_occupied_units, 0);
       
-      const facility_current_move_outs = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.facility_current_move_outs,
+      const company_current_move_outs = Object.values(subGroups).reduce(
+        (sum, group) => sum + group.company_current_move_outs,
         0
       );
-      const facility_current_occupied_units = Object.values(subGroups).reduce(
-        (sum, group) => sum + group.facility_current_occupied_units,
+      const company_current_occupied_units = Object.values(subGroups).reduce(
+        (sum, group) => sum + group.company_current_occupied_units,
         0
       );
     
-      const facility_average_historical_move_out_occupied_ratio_last_60_days =
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0) /
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0);
+      const company_average_historical_move_out_occupied_ratio_last_60_days =
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_move_outs_last_60_days, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_occupied_units_last_60_days, 0);
       
-      const facility_historical_move_outs_last_60_days = (
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0)
+      const company_historical_move_outs_last_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_move_outs_last_60_days, 0)
       );
-      const facility_historical_occupied_units_last_60_days = (
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0)
+      const company_historical_occupied_units_last_60_days = (
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_occupied_units_last_60_days, 0)
       );
     
-      const facility_facility_current_vs_historical_move_out_occupied_ratio =
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_move_outs, 0) /
-        Object.values(subGroups).reduce((sum, group) => sum + group.facility_current_occupied_units, 0) /
+      const company_current_vs_historical_move_out_occupied_ratio =
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_current_move_outs, 0) /
+        Object.values(subGroups).reduce((sum, group) => sum + group.company_current_occupied_units, 0) /
         (
-          Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_move_outs_last_60_days, 0) /
-          Object.values(subGroups).reduce((sum, group) => sum + group.facility_historical_occupied_units_last_60_days, 0)
+          Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_move_outs_last_60_days, 0) /
+          Object.values(subGroups).reduce((sum, group) => sum + group.company_historical_occupied_units_last_60_days, 0)
         );
     
       const group_current_move_out_occupied_ratio_last_60_days =
@@ -1089,13 +1057,20 @@ const GroupableTable: React.FC = () => {
     
       const historical_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.historical_net_rentals, 0);
       const current_period_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.current_period_net_rentals, 0);
+      
+      
+      
       const projected_net_rentals = Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0);
     
+
+      const unit_group_projected_occupancy = (
+        occupied_units + Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0)
+      ) / total_units;
+
+
+
       const net_available_units_last_60_days = (
         Object.values(subGroups).reduce((sum, group) => sum + group.net_available_units_last_60_days, 0) / Object.values(subGroups).length
-      );
-      const days_since_last_rental = (
-        Object.values(subGroups).reduce((sum, group) => sum + group.days_since_last_rental, 0) / Object.values(subGroups).length
       );
     
       const competitor_count = Object.values(subGroups).reduce((sum, group) => sum + group.competitor_count, 0);
@@ -1104,25 +1079,13 @@ const GroupableTable: React.FC = () => {
       const competitor_percentage_more_expensive =
         Object.values(subGroups).reduce((sum, group) => sum + group.competitor_percentage_more_expensive, 0) /
         Object.values(subGroups).length;
-      const mean_competitor_price = Object.values(subGroups).reduce((sum, group) => sum + group.mean_competitor_price, 0) /
-        Object.values(subGroups).length;
-      const median_competitor_price = Object.values(subGroups).reduce((sum, group) => sum + group.median_competitor_price, 0) /
-        Object.values(subGroups).length;
-    
-      const long_term_customer_average =
-        Object.values(subGroups).reduce((sum, group) => sum + (group.long_term_customer_average || 0), 0) / Object.values(subGroups).length;
-      const recent_period_average_move_in_rent =
-        Object.values(subGroups).reduce((sum, group) => sum + (group.recent_period_average_move_in_rent || 0), 0) /
-        Object.values(subGroups).length;
+
       const average_standard_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.average_standard_rate || 0), 0) / Object.values(subGroups).length;
       const average_web_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.average_web_rate || 0), 0) / Object.values(subGroups).length;
     
       const third_quartile_occupancy = Object.values(subGroups).reduce((sum, group) => sum + group.third_quartile_occupancy, 0);
-      const unit_group_projected_occupancy = (
-        occupied_units + Object.values(subGroups).reduce((sum, group) => sum + group.projected_net_rentals, 0)
-      ) / total_units;
     
       const projected_occupancy_impact =
         Object.values(subGroups).reduce((sum, group) => sum + (group.projected_occupancy_impact || 0), 0) / Object.values(subGroups).length;
@@ -1152,28 +1115,23 @@ const GroupableTable: React.FC = () => {
         damaged_count,
         otherwise_unrentable_count,
         available_units,
-        days_with_zero_availability,
-        days_with_low_availability,
         historical_move_ins_last_60_days_group,
         historical_move_ins_last_60_days_facility,
-        historical_move_ins_last_60_days_company,
         move_ins_last_60_days_group,
         move_ins_last_60_days_facility,
-        move_ins_last_60_days_company,
         historical_move_ins_next_60_days_group,
         historical_move_ins_next_60_days_facility,
-        historical_move_ins_next_60_days_company,
         projected_move_ins_group,
         projected_move_ins_facility,
         facility_projected_move_ins_scaled,
         blended_move_in_projection,
-        facility_current_move_out_occupied_ratio_last_60_days,
-        facility_current_move_outs,
-        facility_current_occupied_units,
-        facility_average_historical_move_out_occupied_ratio_last_60_days,
-        facility_historical_move_outs_last_60_days,
-        facility_historical_occupied_units_last_60_days,
-        facility_facility_current_vs_historical_move_out_occupied_ratio,
+        company_current_move_out_occupied_ratio_last_60_days,
+        company_current_move_outs,
+        company_current_occupied_units,
+        company_average_historical_move_out_occupied_ratio_last_60_days,
+        company_historical_move_outs_last_60_days,
+        company_historical_occupied_units_last_60_days,
+        company_current_vs_historical_move_out_occupied_ratio,
         group_current_move_out_occupied_ratio_last_60_days,
         group_current_move_outs,
         group_current_occupied_units,
@@ -1186,14 +1144,10 @@ const GroupableTable: React.FC = () => {
         current_period_net_rentals,
         projected_net_rentals,
         net_available_units_last_60_days,
-        days_since_last_rental,
         competitor_count,
         competitor_percentage_cheaper,
         competitor_percentage_more_expensive,
-        mean_competitor_price,
-        median_competitor_price,
-        long_term_customer_average,
-        recent_period_average_move_in_rent,
+
         average_standard_rate,
         average_web_rate,
         unit_group_projected_occupancy,
@@ -1278,13 +1232,13 @@ const GroupableTable: React.FC = () => {
       { key: 'projected_move_ins_facility', label: 'Projected Move-Ins (Facility)', format: 'number_one_decimal' },
       { key: 'facility_projected_move_ins_scaled', label: 'Facility Projected Move-Ins (Scaled)', format: 'number_one_decimal' },
       { key: 'blended_move_in_projection', label: 'Blended Move-In Projection', format: 'number_one_decimal' },
-      { key: 'facility_current_move_out_occupied_ratio_last_60_days', label: 'Facility Current Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
-      { key: 'facility_current_move_outs', label: 'Facility Current Move-Outs', format: 'number_no_decimal' },
-      { key: 'facility_current_occupied_units', label: 'Facility Current Occupied Units', format: 'number_no_decimal' },
-      { key: 'facility_average_historical_move_out_occupied_ratio_last_60_days', label: 'Facility Average Historical Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
-      { key: 'facility_historical_move_outs_last_60_days', label: 'Facility Historical Move-Outs Last 60 Days', format: 'number_one_decimal' },
-      { key: 'facility_historical_occupied_units_last_60_days', label: 'Facility Historical Occupied Units Last 60 Days', format: 'number_one_decimal' },
-      { key: 'facility_facility_current_vs_historical_move_out_occupied_ratio', label: 'Facility Current vs Historical Move-Out Occupied Ratio', format: 'number_one_decimal' },
+      { key: 'company_current_move_out_occupied_ratio_last_60_days', label: 'Company Current Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
+      { key: 'company_current_move_outs', label: 'Company Current Move-Outs', format: 'number_no_decimal' },
+      { key: 'company_current_occupied_units', label: 'Company Current Occupied Units', format: 'number_no_decimal' },
+      { key: 'company_average_historical_move_out_occupied_ratio_last_60_days', label: 'Company Average Historical Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
+      { key: 'company_historical_move_outs_last_60_days', label: 'Company Historical Move-Outs Last 60 Days', format: 'number_one_decimal' },
+      { key: 'company_historical_occupied_units_last_60_days', label: 'Company Historical Occupied Units Last 60 Days', format: 'number_one_decimal' },
+      { key: 'company_current_vs_historical_move_out_occupied_ratio', label: 'Company Current vs Historical Move-Out Occupied Ratio', format: 'number_one_decimal' },
       { key: 'group_current_move_out_occupied_ratio_last_60_days', label: 'Group Current Move-Out Occupied Ratio Last 60 Days', format: 'percentage' },
       { key: 'group_current_move_outs', label: 'Group Current Move-Outs', format: 'number_no_decimal' },
       { key: 'group_current_occupied_units', label: 'Group Current Occupied Units', format: 'number_no_decimal' },
@@ -1296,6 +1250,7 @@ const GroupableTable: React.FC = () => {
       { key: 'historical_net_rentals', label: 'Historical Net Rentals', format: 'number_one_decimal' },
       { key: 'current_period_net_rentals', label: 'Current Period Net Rentals', format: 'number_no_decimal' },
       { key: 'projected_net_rentals', label: 'Projected Net Rentals', format: 'number_one_decimal' },
+      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', format: 'percentage' },
       { key: 'days_since_last_rental', label: 'Days Since Last Rental', format: 'number_no_decimal' },
       { key: 'competitor_count', label: 'Competitor Count', format: 'number_no_decimal' },
       { key: 'competitor_percentage_cheaper', label: 'Competitor % Cheaper', format: 'percentage' },
@@ -1306,11 +1261,10 @@ const GroupableTable: React.FC = () => {
       { key: 'recent_period_average_move_in_rent', label: 'Recent Period Average Move-In Rent', format: 'currency' },
       { key: 'average_standard_rate', label: 'Current Standard Rate', format: 'currency' },
       { key: 'average_web_rate', label: 'Current Web Rate', format: 'currency' },
-      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', format: 'percentage' },
       { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact', format: 'percentage' },
+      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', format: 'percentage' },
       { key: 'unit_group_leasing_velocity', label: 'Leasing Velocity (Group)', format: 'percentage' },
       { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', format: 'percentage' },
-      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', format: 'percentage' },
       { key: 'competitor_impact', label: 'Competitor Impact', format: 'percentage' },
       { key: 'suggested_web_rate', label: 'Suggested Web Rate', format: 'currency' },
       { key: 'effective_web_rate', label: 'Effective Web Rate', format: 'currency' },
@@ -1482,42 +1436,42 @@ const GroupableTable: React.FC = () => {
       { key: 'projected_move_ins_facility', label: 'Projected Move-Ins (Facility)', tooltip: 'The projected number of move-ins for the facility in the next 60 days, based on historical trends and current data. Formula: Projected Move-Ins (Facility) = Move-Ins Last 60 Days (Facility) / Historical Move-Ins Last 60 Days (Facility) * Historical Move-Ins Next 60 Days (Facility).' },
       { key: 'facility_projected_move_ins_scaled', label: 'Facility Projected Move-Ins (Scaled)', tooltip: 'The projected number of move-ins for the facility, scaled to account for the total units in the group. Formula: Facility Projected Move-Ins (Scaled) = Projected Move-Ins (Facility) * (Total Units (Group) / Total Units (Facility)).' },
       { key: 'blended_move_in_projection', label: 'Blended Move-In Projection', tooltip: 'The average of the projected move-ins for the group and the scaled projected move-ins for the facility. Formula: Blended Move-In Projection = (Projected Move-Ins (Group) + Facility Projected Move-Ins (Scaled)) / 2.' },
-      { key: 'facility_current_move_out_occupied_ratio_last_60_days', label: 'Facility Current Move-Out Occupied Ratio Last 60 Days', tooltip: 'The ratio of move-outs to occupied units for the facility in the last 60 days. Formula: Facility Current Move-Out Occupied Ratio Last 60 Days = Facility Current Move-Outs / Facility Current Occupied Units.' },
-      { key: 'facility_current_move_outs', label: 'Facility Current Move-Outs', tooltip: 'The actual number of move-outs for the facility in the last 60 days.' },
-      { key: 'facility_current_occupied_units', label: 'Facility Current Occupied Units', tooltip: 'The number of units currently occupied in the facility.' },
-      { key: 'facility_average_historical_move_out_occupied_ratio_last_60_days', label: 'Facility Average Historical Move-Out Occupied Ratio Last 60 Days', tooltip: 'The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years. Formula: historical average(move-outs last 60 days / occupied units this date).' },
-      { key: 'facility_historical_move_outs_last_60_days', label: 'Facility Historical Move-Outs Last 60 Days', tooltip: 'The average number of move-outs for the facility in the last 60 days, calculated over the past four years. Formula: Average(move-outs for the last 60 days over the past four years).' },
-      { key: 'facility_historical_occupied_units_last_60_days', label: 'Facility Historical Occupied Units Last 60 Days', tooltip: 'The average number of occupied units in the facility for the last 60 days, calculated over the past four years. Formula: Facility Historical Occupied Units Last 60 Days = Average(occupied units for the last 60 days over the past four years).' },
-      { key: 'facility_facility_current_vs_historical_move_out_occupied_ratio', label: 'Facility Current vs Historical Move-Out Occupied Ratio', tooltip: 'The ratio of the current move-out occupied ratio to the historical average for the facility. Formula: Facility Current vs Historical Move-Out Occupied Ratio = Current Move-Out Occupied Ratio / Historical Move-Out Occupied Ratio.' },
+      { key: 'company_current_move_out_occupied_ratio_last_60_days', label: 'Company Current Move-Out Occupied Ratio Last 60 Days', tooltip: 'The ratio of move-outs to occupied units for the facility in the last 60 days. Formula: Facility Current Move-Out Occupied Ratio Last 60 Days = Facility Current Move-Outs / Facility Current Occupied Units.' },
+      { key: 'company_current_move_outs', label: 'Company Current Move-Outs', tooltip: 'The actual number of move-outs for the facility in the last 60 days.' },
+      { key: 'company_current_occupied_units', label: 'Company Current Occupied Units', tooltip: 'The number of units currently occupied in the facility.' },
+      { key: 'company_average_historical_move_out_occupied_ratio_last_60_days', label: 'Company Average Historical Move-Out Occupied Ratio Last 60 Days', tooltip: 'The average ratio of move-outs to occupied units for the facility in the last 60 days, calculated over the past four years. Formula: historical average(move-outs last 60 days / occupied units this date).' },
+      { key: 'company_historical_move_outs_last_60_days', label: 'Company Historical Move-Outs Last 60 Days', tooltip: 'The average number of move-outs for the facility in the last 60 days, calculated over the past four years. Formula: Average(move-outs for the last 60 days over the past four years).' },
+      { key: 'company_historical_occupied_units_last_60_days', label: 'Company Historical Occupied Units Last 60 Days', tooltip: 'The average number of occupied units in the facility for the last 60 days, calculated over the past four years. Formula: Facility Historical Occupied Units Last 60 Days = Average(occupied units for the last 60 days over the past four years).' },
+      { key: 'company_current_vs_historical_move_out_occupied_ratio', label: 'Company Current vs Historical Move-Out Occupied Ratio', tooltip: 'The ratio of the current move-out occupied ratio to the historical average for the facility. Formula: Facility Current vs Historical Move-Out Occupied Ratio = Current Move-Out Occupied Ratio / Historical Move-Out Occupied Ratio.' },
       { key: 'group_current_move_out_occupied_ratio_last_60_days', label: 'Group Current Move-Out Occupied Ratio Last 60 Days', tooltip: 'The ratio of move-outs to occupied units for the group in the last 60 days. Formula: Group Current Move-Out Occupied Ratio Last 60 Days = Group Current Move-Outs / Group Current Occupied Units.' },
       { key: 'group_current_move_outs', label: 'Group Current Move-Outs', tooltip: 'The actual number of move-outs for the group in the last 60 days.' },
       { key: 'group_current_occupied_units', label: 'Group Current Occupied Units', tooltip: 'The number of units currently occupied in the group.' },
       { key: 'group_average_historical_move_out_occupied_ratio_next_60_days', label: 'Group Average Historical Move-Out Occupied Ratio Next 60 Days', tooltip: 'The average ratio of move-outs to occupied units for the group in the next 60 days, calculated over the past four years. Formula: historical average(move-outs next 60 days / occupied units in 60 days).' },
       { key: 'group_historical_move_outs_next_60_days', label: 'Group Historical Move-Outs Next 60 Days', tooltip: 'The average number of move-outs for the group in the next 60 days, calculated over the past four years. Formula: Average(move-outs for the next 60 days over the past four years).' },
       { key: 'group_historical_occupied_units_next_60_days', label: 'Group Historical Occupied Units Next 60 Days', tooltip: 'The average number of occupied units in the group for the next 60 days, calculated over the past four years. Formula: Group Historical Occupied Units Next 60 Days = Average(occupied units for the next 60 days over the past four years).' },
-      { key: 'projected_move_out_occupied_ratio', label: 'Projected Move-Out Occupied Ratio', tooltip: 'The projected ratio of move-outs to occupied units for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Out Occupied Ratio = Historical Move-Out Occupied Ratio Next 60 Days * (Current Move-Outs / Historical Move-Outs Last 60 Days).' },
-      { key: 'projected_move_outs_next_60_days', label: 'Projected Move-Outs Next 60 Days', tooltip: 'The projected number of move-outs for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Outs Next 60 Days = Historical Move-Outs Next 60 Days * (Current Move-Outs / Historical Move-Outs Last 60 Days).' },
+      { key: 'projected_move_out_occupied_ratio', label: 'Projected Move-Out Occupied Ratio', tooltip: 'The projected ratio of move-outs to occupied units for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Out Occupied Ratio = (company_current_vs_historical_move_out_occupied_ratio * average_historical_move_out_occupied_ratio_next_60_days).' },
+      { key: 'projected_move_outs_next_60_days', label: 'Projected Move-Outs Next 60 Days', tooltip: 'The projected number of move-outs for the group in the next 60 days, based on historical trends and current data. Formula: Projected Move-Outs Next 60 Days =(Projected Move-Out Occupied Ratio * Current Occupied Units).' },
       { key: 'historical_net_rentals', label: 'Historical Net Rentals', tooltip: 'The average net rentals for the group in the past, calculated as the difference between move-ins and move-outs over a given period. Formula: Historical Net Rentals = Average(move-ins - move-outs) over a given period.' },
       { key: 'current_period_net_rentals', label: 'Current Period Net Rentals', tooltip: 'The net rentals for the group in the current period, calculated as the difference between move-ins and move-outs. Formula: Current Period Net Rentals = Move-Ins - Move-Outs.' },
       { key: 'projected_net_rentals', label: 'Projected Net Rentals', tooltip: 'The projected net rentals for the group in the next 60 days, based on historical trends and current data. Formula: Projected Net Rentals = Projected Move-Ins - Projected Move-Outs.' },
+      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', tooltip: 'The projected occupancy rate for the group. Formula: Projected Occupancy = (Current Occupied Units + Projected Net Rentals) / Total Units.' },
       { key: 'days_since_last_rental', label: 'Days Since Last Rental', tooltip: 'The number of days since the last rental was made in the group. Formula: Days Since Last Rental = Current Date - Last Rental Date.' },
-      { key: 'competitor_count', label: 'Competitor Count', tooltip: 'The number of competitors in the vicinity of the group.' },
-      { key: 'competitor_percentage_cheaper', label: 'Competitor % Cheaper', tooltip: 'The percentage of competitors offering lower rates compared to the group. Formula: Competitor % Cheaper = (Number of Competitors with Lower Rates / Total Competitors) * 100.' },
-      { key: 'competitor_percentage_more_expensive', label: 'Competitor % More Expensive', tooltip: 'The percentage of competitors offering higher rates compared to the group. Formula: Competitor % More Expensive = (Number of Competitors with Higher Rates / Total Competitors) * 100.' },
+      { key: 'competitor_count', label: 'Competitor Count', tooltip: 'The number of competitors matching groups in a 5 mile radius of the facility.' },
+      { key: 'competitor_percentage_cheaper', label: 'Competitor % Cheaper', tooltip: 'The percentage of competitors that are cheaper than our group. Formula: Competitor % Cheaper = (Number of Competitors with Lower Rates / Total Competitors) * 100.' },
+      { key: 'competitor_percentage_more_expensive', label: 'Competitor % More Expensive', tooltip: 'The percentage of competitors that are more expensive that our group. Formula: Competitor % More Expensive = (Number of Competitors with Higher Rates / Total Competitors) * 100.' },
       { key: 'mean_competitor_price', label: 'Mean Competitor Rate', tooltip: 'The average rate of competitors in the vicinity of the group. Formula: Mean Competitor Rate = Sum of Competitor Rates / Number of Competitors.' },
       { key: 'median_competitor_price', label: 'Median Competitor Rate', tooltip: 'The median rate of competitors in the vicinity of the group. Formula: Median Competitor Rate = Median of Competitor Rates.' },
       { key: 'long_term_customer_average', label: 'Long Term Customer Average', tooltip: 'The average tenure of long-term customers in the group. Formula: Long Term Customer Average = Average tenure of customers who have been with the group for more than a specified period.' },
       { key: 'recent_period_average_move_in_rent', label: 'Recent Period Average Move-In Rent', tooltip: 'The average rent for move-ins during the recent period. Formula: Recent Period Average Move-In Rent = Sum of Rent for Move-Ins during Recent Period / Number of Move-Ins during Recent Period.' },
       { key: 'average_standard_rate', label: 'Current Standard Rate', tooltip: 'The current standard rate for units in the group.' },
       { key: 'average_web_rate', label: 'Current Web Rate', tooltip: 'The current web rate for units in the group.' },
-      { key: 'unit_group_projected_occupancy', label: 'Projected Occupancy', tooltip: 'The projected occupancy rate for the group. Formula: Projected Occupancy = Projected Occupied Units / Total Units.' },
-      { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact', tooltip: 'The impact of projected move-ins and move-outs on the occupancy rate. Formula: Projected Occupancy Impact = Projected Occupancy - Current Occupancy.' },
-      { key: 'unit_group_leasing_velocity', label: 'Leasing Velocity (Group)', tooltip: 'The rate at which units are leased in the group. Formula: Leasing Velocity = Number of Leases / Time Period.' },
-      { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', tooltip: 'The rate at which units are leased in the company. Formula: Leasing Velocity = Number of Leases / Time Period.' },
-      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', tooltip: 'The impact of leasing velocity on the group\'s occupancy rate. Formula: Leasing Velocity Impact = Leasing Velocity * Time Period.' },
+      { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact', tooltip: 'The impact of projected move-ins and move-outs on the occupancy rate. Formula: Projected Occupancy Impact = IF(Group Projected Occupancy > 0.92) THEN ((Group Projected Occupancy / Adjusted Target Occupancy) * 1.25) ELSE ((Group Projected Occupancy / Adjusted Target Occupancy) * 0.75).' },
+      { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact', tooltip: 'The impact of leasing velocity on the group\'s occupancy rate. Formula: Leasing Velocity Impact = IF(Group Leasing Velocity > Company Leasing Velocity) THEN ((Group Leasing Velocity - Company Leasing Velocity) / 3) ELSE ((Group Leasing Velocity - Company Leasing Velocity) / 2)' },
+      { key: 'unit_group_leasing_velocity', label: 'Leasing Velocity (Group)', tooltip: 'The rate at which units are leased in the group. Formula: Leasing Velocity = (Group Move Ins Last 60 Days / 60 * 365) / Total Units.' },
+      { key: 'company_group_leasing_velocity', label: 'Leasing Velocity (Company)', tooltip: 'The rate at which units are leased in the company. Formula: Leasing Velocity = (Company Group Historical Average Move Ins Last 60 Days / 60) * 365 / Total Company Group Units.' },
       { key: 'competitor_impact', label: 'Competitor Impact', tooltip: 'The impact of competitors on the group\'s occupancy rate. Formula: Competitor Impact = ((IF(% More Expensive > 0.6, % More Expensive - 0.6, IF(% More Expensive < 0.4, % More Expensive - 0.4, 0), 0))) * Competitor Count / 8).' },
-      { key: 'suggested_web_rate', label: 'Suggested Web Rate', tooltip: 'The suggested web rate for units in the group.' },
-      { key: 'effective_web_rate', label: 'Effective Web Rate', tooltip: 'The effective web rate for units in the group, considering discounts and promotions.' }
+      { key: 'suggested_web_rate', label: 'Suggested Web Rate', tooltip: 'The suggested web rate for units in the group. Formmula: Recent Period Average Move In Rate * ((1 + Projected Occupancy Impact) * (1 + Leasing Velocity Impact) * (1 + Competitor Impact)) ' },
+      { key: 'effective_web_rate', label: 'Effective Web Rate', tooltip: 'The effective web rate for units in the group, allowing manual override of the suggested web rate.' }
     ];
   
     // Separate pinned and non-pinned columns
@@ -1550,7 +1504,7 @@ const GroupableTable: React.FC = () => {
             >
               <span className="text-content">{column.label}</span>
               <span className="pin-icon" onClick={(e) => { e.stopPropagation(); togglePinColumn(column.key); }}>
-                📌
+                🟠
               </span>
             </Th>
           ))}
