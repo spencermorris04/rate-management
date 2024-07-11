@@ -97,13 +97,10 @@ interface GroupedData {
   occupancy_rate: number;
   historical_move_ins_last_60_days_group: number;
   historical_move_ins_last_60_days_facility: number;
-  historical_move_ins_last_60_days_company: number;
   move_ins_last_60_days_group: number;
   move_ins_last_60_days_facility: number;
-  move_ins_last_60_days_company: number;
   historical_move_ins_next_60_days_group: number;
   historical_move_ins_next_60_days_facility: number;
-  historical_move_ins_next_60_days_company: number;
   projected_move_ins_group: number;
   projected_move_ins_facility: number;
   facility_projected_move_ins_scaled: number;
@@ -126,12 +123,8 @@ interface GroupedData {
   historical_net_rentals: number;
   current_period_net_rentals: number;
   projected_net_rentals: number;
-  competitor_count: number;
   competitor_percentage_cheaper: number;
   competitor_percentage_more_expensive: number;
-  mean_competitor_price: number;
-  median_competitor_price: number;
-  long_term_customer_average: number | null;
   recent_period_average_move_in_rent: number | null;
   average_standard_rate: number;
   average_web_rate: number;
@@ -141,7 +134,6 @@ interface GroupedData {
   suggested_web_rate: number | null;
   expected_web_rate: number | null;
   net_available_units_last_60_days: number;
-  days_since_last_rental: number; // New field
   unit_group_leasing_velocity: number;
   company_group_leasing_velocity: number;
   unit_group_projected_occupancy: number;
@@ -151,8 +143,6 @@ interface GroupedData {
   damaged_count: number;
   otherwise_unrentable_count: number;
   available_units: number;
-  days_with_zero_availability: number;
-  days_with_low_availability: number;
   subGroups?: { [key: string]: GroupedData };
 }
 
@@ -554,13 +544,13 @@ const GroupableTable: React.FC = () => {
     projected_move_ins_facility: 0,
     facility_projected_move_ins_scaled: 0,
     blended_move_in_projection: 0,
-    facility_current_move_out_occupied_ratio_last_60_days: 0,
-    facility_current_move_outs: 0,
-    facility_current_occupied_units: 0,
-    facility_average_historical_move_out_occupied_ratio_last_60_days: 0,
-    facility_historical_move_outs_last_60_days: 0,
-    facility_historical_occupied_units_last_60_days: 0,
-    facility_facility_current_vs_historical_move_out_occupied_ratio: 0,
+    company_current_move_out_occupied_ratio_last_60_days: 0,
+    company_current_move_outs: 0,
+    company_current_occupied_units: 0,
+    company_average_historical_move_out_occupied_ratio_last_60_days: 0,
+    company_historical_move_outs_last_60_days: 0,
+    company_historical_occupied_units_last_60_days: 0,
+    company_current_vs_historical_move_out_occupied_ratio: 0,
     group_current_move_out_occupied_ratio_last_60_days: 0,
     group_current_move_outs: 0,
     group_current_occupied_units: 0,
@@ -854,6 +844,9 @@ const GroupableTable: React.FC = () => {
         const leasing_velocity_impact =
           items.reduce((sum, item) => sum + (item.leasing_velocity_impact || 0), 0) / items.length;
         const competitor_impact = items.reduce((sum, item) => sum + (item.competitor_impact || 0), 0) / items.length;
+
+        const recent_period_average_move_in_rent = items.reduce((sum, item) => sum + (item.recent_period_average_move_in_rent ?? 0), 0) / items.length;
+
     
         const suggested_web_rate =
           items.reduce((sum, item) => sum + (item.suggested_web_rate || 0), 0) / items.length;
@@ -902,7 +895,6 @@ const GroupableTable: React.FC = () => {
           competitor_count,
           competitor_percentage_cheaper,
           competitor_percentage_more_expensive,
-
           average_standard_rate,
           average_web_rate,
           unit_group_projected_occupancy,
@@ -912,6 +904,7 @@ const GroupableTable: React.FC = () => {
           company_group_leasing_velocity,
           leasing_velocity_impact,
           competitor_impact,
+          recent_period_average_move_in_rent,
           suggested_web_rate,
           expected_web_rate,
         };
@@ -1099,6 +1092,8 @@ const GroupableTable: React.FC = () => {
         Object.values(subGroups).reduce((sum, group) => sum + (group.leasing_velocity_impact || 0), 0) / Object.values(subGroups).length;
       const competitor_impact = Object.values(subGroups).reduce((sum, group) => sum + (group.competitor_impact || 0), 0) /
         Object.values(subGroups).length;
+
+      const recent_period_average_move_in_rent = items.reduce((sum, item) => sum + (item.recent_period_average_move_in_rent ?? 0), 0) / items.length;
     
       const suggested_web_rate =
         Object.values(subGroups).reduce((sum, group) => sum + (group.suggested_web_rate || 0), 0) / Object.values(subGroups).length;
@@ -1147,7 +1142,7 @@ const GroupableTable: React.FC = () => {
         competitor_count,
         competitor_percentage_cheaper,
         competitor_percentage_more_expensive,
-
+        recent_period_average_move_in_rent,
         average_standard_rate,
         average_web_rate,
         unit_group_projected_occupancy,
