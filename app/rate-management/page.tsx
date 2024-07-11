@@ -638,7 +638,6 @@ const GroupableTable: React.FC = () => {
       
       // Limit the number of pinned columns to 4
       if (newPinnedColumns.length > 4) {
-        toast.warn('You can pin up to 4 columns only. Please unpin a column to pin a new one.');
         return prevPinned;
       }
   
@@ -1511,7 +1510,6 @@ const GroupableTable: React.FC = () => {
    
   return (
     <PageContainer>
-      <ToastContainer />
       <TableWrapper ref={tableWrapperRef}>
         <Table>
           {renderHeader()}
