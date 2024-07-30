@@ -100,6 +100,9 @@ interface Grouping {
     historical_net_rentals_next_x_days_description: string;
     projected_net_rentals_next_x_days: number;
     projected_net_rentals_next_x_days_description: string;
+    suggested_web_rate: number;
+    laddered_suggested_rate: number;
+    scaled_suggested_rate: number;
     children?: Grouping[];
   }
 
@@ -330,6 +333,9 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
     { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact' },
     { key: 'projected_occupancy', label: 'Projected Occupancy' },
     { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact' },
+    { key: 'suggested_web_rate', label: 'Initially Suggested Web Rate' },
+    { key: 'laddered_suggested_rate', label: 'Laddered Suggested Rate' },
+    { key: 'scaled_suggested_rate', label: 'Scaled Suggested Rate' },
   ];
 
   const toggleColumn = (column: string) => {
@@ -399,23 +405,27 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
     let groupName = '';
   
     switch (level) {
-      case 0:
-        groupName = group.facility_name;
-        break;
-      case 1:
-        groupName = group.group_type;
-        break;
-      case 2:
-        groupName = group.area_bucket;
-        break;
-      case 3:
-        // Extract only the third section from unit_group_type
-        const parts = group.unit_group_type.split(' | ');
-        groupName = parts.length === 3 ? parts[2] : group.unit_group_type;
-        break;
-      default:
-        groupName = '';
-    }
+        case 0:
+          groupName = group.facility_name;
+          break;
+        case 1:
+          groupName = group.group_type;
+          break;
+        case 2:
+          groupName = group.area_bucket;
+          break;
+        case 3:
+          // Extract the first and last sections from unit_group_type
+          const parts = group.unit_group_type.split(' | ');
+          if (parts.length >= 3) {
+            groupName = `${parts[0]} | ${parts[parts.length - 1]}`.trim();
+          } else {
+            groupName = group.unit_group_type;
+          }
+          break;
+        default:
+          groupName = '';
+      }
   
     const pinnedCols = columns.filter(col => pinnedColumns.includes(col.key));
     const nonPinnedCols = columns.filter(col => !pinnedColumns.includes(col.key));
