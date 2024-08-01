@@ -103,6 +103,14 @@ interface Grouping {
     suggested_web_rate: number;
     laddered_suggested_rate: number;
     scaled_suggested_rate: number;
+    previous_bucket_size: number;
+    previous_bucket_size_description: string;
+    next_bucket_size: number;
+    next_bucket_size_description: string;
+    previous_bucket_laddered_rate: number;
+    previous_bucket_laddered_rate_description: string;
+    next_bucket_laddered_rate: number;
+    next_bucket_laddered_rate_description: string;
     children?: Grouping[];
   }
 
@@ -127,14 +135,21 @@ const TableWrapper = styled.div`
   opacity: 0.95;
 `;
 
+const getPinnedLeftPosition = (pinnedIndex: number | undefined, isStickyLeft: boolean) => {
+  if (isStickyLeft) return 0;
+  if (pinnedIndex === undefined) return 'auto';
+  return `${200 + pinnedIndex * 150}px`;
+};
+
 const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?: boolean }>`
   background-color: ${({ minimized }) => (minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
-  padding: 16px 12px;
+  padding: 8px 2px;
   text-align: center;
-  width: ${({ minimized }) => (minimized ? '5px' : '150px')};
-  min-width: ${({ minimized }) => (minimized ? '5px' : '150px')};
-  max-width: ${({ minimized }) => (minimized ? '5px' : '150px')};
+  position: relative;
+  width: ${({ minimized }) => (minimized ? '40px' : '150px')};
+  min-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
+  max-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
   position: sticky;
   top: 0;
   z-index: 20;
@@ -162,10 +177,9 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
   &::after {
     content: ${({ minimized }) => (minimized ? "'+'" : "''")};
     position: absolute;
-    left: 0;
-    right: 0;
-    padding: 0px 0px;
-    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-size: 14px;
     color: ${({ minimized }) => (minimized ? '#000' : 'transparent')};
   }
@@ -173,7 +187,7 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
   ${({ pinnedIndex }) =>
     pinnedIndex !== undefined &&
     `
-    left: ${50 + pinnedIndex * 150}px;
+    left: ${200 + (pinnedIndex - 1) * 150}px;
     z-index: 25;
     background-color: #d9d9d9;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -184,6 +198,7 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
     top: 2px;
     right: 2px;
     cursor: pointer;
+    display: ${({ minimized }) => (minimized ? 'none' : 'block')};
   }
 `;
 
@@ -191,9 +206,18 @@ const Td = styled.td<{ level?: number, minimized?: boolean, pinnedIndex?: number
   border: none;
   padding: 18px 8px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
-  width: ${({ minimized }) => (minimized ? '5px' : '150px')};
-  min-width: ${({ minimized }) => (minimized ? '5px' : '150px')};
-  max-width: ${({ minimized }) => (minimized ? '5px' : '150px')};
+
+  ${({ pinnedIndex, isStickyLeft }) => `
+    position: ${pinnedIndex !== undefined || isStickyLeft ? 'sticky' : 'static'};
+    left: ${getPinnedLeftPosition(pinnedIndex, isStickyLeft)};
+    z-index: ${isStickyLeft ? 10 : pinnedIndex !== undefined ? 5 : 'auto'};
+    background-color: inherit;
+    box-shadow: ${pinnedIndex !== undefined || isStickyLeft ? '2px 0 5px rgba(0,0,0,0.1)' : 'none'};
+    width: ${pinnedIndex !== undefined || isStickyLeft ? '150px' : 'auto'};
+    min-width: ${pinnedIndex !== undefined || isStickyLeft ? '150px' : 'auto'};
+    max-width: ${pinnedIndex !== undefined || isStickyLeft ? '150px' : 'none'};
+  `}
+
   text-align: center;
   background-color: ${({ even }) => (even ? 'rgba(249, 249, 249, 0.3)' : 'rgba(255, 255, 255, 0.3)')};
 
@@ -283,6 +307,11 @@ interface TableComponentProps {
   loading: boolean;
 }
 
+const getLongestWord = (label: string) => {
+  const words = label.split(' ');
+  return words.reduce((longest, word) => word.length > longest.length ? word : longest);
+};
+
 const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading }) => {
   const [data, setData] = useState<Grouping[]>(initialData);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
@@ -328,13 +357,13 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
     { key: 'historical_net_rentals_last_x_days', label: 'Historical Net Rentals Last X Days' },
     { key: 'historical_net_rentals_next_x_days', label: 'Historical Net Rentals Next X Days' },
     { key: 'projected_net_rentals_next_x_days', label: 'Projected Net Rentals Next X Days' },
-    { key: 'competitor_impact', label: 'Competitor Impact' },
+    { key: 'competitor_impact', label: 'Isolated Competitor Pricing Rate Pressure' },
     { key: 'leasing_velocity', label: 'Leasing Velocity' },
-    { key: 'leasing_velocity_impact', label: 'Leasing Velocity Impact' },
+    { key: 'leasing_velocity_impact', label: 'Isolated Leasing Velocity Rate Pressure' },
     { key: 'projected_occupancy', label: 'Projected Occupancy' },
-    { key: 'projected_occupancy_impact', label: 'Projected Occupancy Impact' },
+    { key: 'projected_occupancy_impact', label: 'Isolated Projected Occupancy Impact Rate Pressure' },
     { key: 'suggested_web_rate', label: 'Initially Suggested Web Rate' },
-    { key: 'laddered_suggested_rate', label: 'Laddered Suggested Rate' },
+    { key: 'laddered_suggested_rate', label: 'Inital Size Ordering Rate Constraints' },
     { key: 'scaled_suggested_rate', label: 'Scaled Suggested Rate' },
   ];
 
@@ -376,25 +405,39 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
           <Th isStickyLeft>
             <span className="text-content">Group</span>
           </Th>
-          {sortedColumns.map((column, index) => (
-            <Th
-              key={column.key}
-              minimized={hiddenColumns.has(column.key)}
-              pinnedIndex={pinnedColumns.includes(column.key) ? pinnedColumns.indexOf(column.key) + 1 : undefined}
-              onClick={() => toggleColumn(column.key)}
-            >
-              <span className="text-content">{column.label}</span>
-              <span 
-                className="pin-icon" 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  togglePinColumn(column.key); 
-                }}
+          {sortedColumns.map((column, index) => {
+            const isPinned = pinnedColumns.includes(column.key);
+            const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) + 1 : undefined;
+            const isMinimized = hiddenColumns.has(column.key);
+            return (
+              <Th
+                key={column.key}
+                minimized={isMinimized}
+                pinnedIndex={pinnedIndex}
+                onClick={() => toggleColumn(column.key)}
               >
-                📌
-              </span>
-            </Th>
-          ))}
+                <span className="text-content">
+                  {column.label.split(' ').map((word, i) => (
+                    <React.Fragment key={i}>
+                      {word}
+                      {i < column.label.split(' ').length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
+                </span>
+                {!isMinimized && (
+                  <span 
+                    className="pin-icon" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      togglePinColumn(column.key); 
+                    }}
+                  >
+                    {isPinned ? '📌' : '📍'}
+                  </span>
+                )}
+              </Th>
+            );
+          })}
         </tr>
       </thead>
     );
@@ -442,20 +485,29 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
             )}
             {groupName}
           </Td>
-          {sortedColumns.map((column, index) => (
-            <Td
-              key={column.key}
-              minimized={hiddenColumns.has(column.key)}
-              pinnedIndex={pinnedColumns.includes(column.key) ? pinnedColumns.indexOf(column.key) : undefined}
-              isStickyLeft={column.key === 'group'} // Add this line
-              level={level}
-              title={group[`${column.key}_description` as keyof Grouping] as string}
-            >
-              <span className="content">
-                {group[column.key as keyof Grouping] as React.ReactNode}
-              </span>
-            </Td>
-          ))}
+          {sortedColumns.map((column, index) => {
+            const isPinned = pinnedColumns.includes(column.key);
+            const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) : undefined;
+            const style = !isPinned ? {
+              width: `${getLongestWord(column.label).length * 10 + 4}px`,
+              minWidth: `${getLongestWord(column.label).length * 10 + 4}px`
+            } : {};
+            return (
+              <Td
+                key={column.key}
+                minimized={hiddenColumns.has(column.key)}
+                pinnedIndex={pinnedIndex}
+                isStickyLeft={false}
+                level={level}
+                title={group[`${column.key}_description` as keyof Grouping] as string}
+                style={style}
+              >
+                <span className="content">
+                  {group[column.key as keyof Grouping] as React.ReactNode}
+                </span>
+              </Td>
+            );
+          })}
         </GroupRow>
         {!isBaseRow && expanded[key] && group.children && group.children.map(child => renderRows(child, level + 1))}
       </React.Fragment>
