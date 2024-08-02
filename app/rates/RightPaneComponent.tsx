@@ -18,12 +18,13 @@ interface RightPaneComponentProps {
 const RightPane = styled.div`
   width: 18%;
   height: 90vh;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--bg-color);
   border-radius: 20px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 `;
 
 const InputContainer = styled.div`
@@ -32,7 +33,7 @@ const InputContainer = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  background-color: #f0f0f0;
+  background-color: var(--input-bg-color);
   padding: 10px;
   border-radius: 10px;
 `;
@@ -43,9 +44,10 @@ const PeriodLengthInput = styled.input`
   border-radius: 5px;
   border: 1px solid #ccc;
   text-align: center;
-  background-color: white;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
   &:invalid {
-    background-color: #ffdddd;
+    background-color: var(--invalid-bg-color);
   }
 `;
 
@@ -55,14 +57,15 @@ const OccupancyDisplay = styled.div`
   border-radius: 5px;
   border: 1px solid #ccc;
   text-align: center;
-  background-color: white;
   cursor: pointer;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
 `;
 
 const SubmitButton = styled.button`
   padding: 10px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--button-bg-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -70,7 +73,7 @@ const SubmitButton = styled.button`
   margin-left: 10px;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: var(--button-hover-bg-color);
   }
 
   display: flex;
@@ -83,6 +86,7 @@ const FieldLabel = styled.div`
   text-align: center;
   font-weight: bold;
   margin-bottom: 5px;
+  color: var(--text-color);
 `;
 
 const TimerContainer = styled.div`

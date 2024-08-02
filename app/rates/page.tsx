@@ -6,14 +6,51 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Suspense } from 'react';
 import TableComponent from './TableComponent';
 import RightPaneComponent from './RightPaneComponent';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
+
+const GlobalStyle = createGlobalStyle`
+  :root {
+    --bg-color: rgba(255, 255, 255, 0.5);
+    --text-color: #000000;
+    --toast-bg: #ffffff;
+    --toast-text: #333333;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: rgba(0, 0, 0, 0.5);
+      --text-color: #ffffff;
+      --toast-bg: #333333;
+      --toast-text: #ffffff;
+    }
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+
+  /* Customize toast container for dark mode */
+  .Toastify__toast-container {
+    background-color: var(--toast-bg);
+  }
+
+  .Toastify__toast {
+    background-color: var(--toast-bg);
+    color: var(--toast-text);
+  }
+
+  .Toastify__close-button {
+    color: var(--toast-text);
+  }
+`;
 
 const PageContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   min-height: 100vh;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--bg-color);
   backdrop-filter: blur(20px);
   padding: 20px;
   overflow: hidden;
@@ -150,19 +187,22 @@ export default function Page() {
   }
 
   return (
-    <PageContainer>
-      <Suspense fallback={<div>Loading table...</div>}>
-        <TableComponent initialData={data?.initialData} loading={loading} />
-      </Suspense>
-      <Suspense fallback={<div>Loading controls...</div>}>
-        <RightPaneComponent 
-          initialPeriodLength={data?.initialPeriodLength} 
-          initialTargetOccupancy={data?.initialTargetOccupancy}
-          onUpdatePeriodLength={handleUpdatePeriodLength}
-          onUpdateTargetOccupancy={handleUpdateTargetOccupancy}
-        />
-      </Suspense>
-      <ToastContainer />
-    </PageContainer>
+    <>
+      <GlobalStyle />
+      <PageContainer>
+        <Suspense fallback={<div>Loading table...</div>}>
+          <TableComponent initialData={data?.initialData} loading={loading} />
+        </Suspense>
+        <Suspense fallback={<div>Loading controls...</div>}>
+          <RightPaneComponent 
+            initialPeriodLength={data?.initialPeriodLength} 
+            initialTargetOccupancy={data?.initialTargetOccupancy}
+            onUpdatePeriodLength={handleUpdatePeriodLength}
+            onUpdateTargetOccupancy={handleUpdateTargetOccupancy}
+          />
+        </Suspense>
+        <ToastContainer />
+      </PageContainer>
+    </>
   );
 }

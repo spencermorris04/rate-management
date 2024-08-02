@@ -52,6 +52,7 @@ interface Grouping {
   historical_net_rentals_last_x_days: [number, string];
   historical_net_rentals_next_x_days: [number, string];
   projected_net_rentals_next_x_days: [number, string];
+  rate_pressure: [number, string];
   suggested_web_rate: [number, string];
   laddered_suggested_rate: [number, string];
   scaled_suggested_rate: [number, string];
@@ -155,6 +156,8 @@ interface ProcessedGrouping {
   historical_net_rentals_next_x_days_description: string;
   projected_net_rentals_next_x_days: number;
   projected_net_rentals_next_x_days_description: string;
+  rate_pressure: number;
+  rate_pressure_description: string;
   suggested_web_rate: number;
   suggested_web_rate_description: string;
   laddered_suggested_rate: number;
@@ -214,6 +217,7 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     historical_net_rentals_last_x_days,
     historical_net_rentals_next_x_days,
     projected_net_rentals_next_x_days,
+    rate_pressure,
     suggested_web_rate,
     laddered_suggested_rate,
     scaled_suggested_rate,
@@ -317,6 +321,8 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     historical_net_rentals_next_x_days_description: historical_net_rentals_next_x_days[1],
     projected_net_rentals_next_x_days: projected_net_rentals_next_x_days[0],
     projected_net_rentals_next_x_days_description: projected_net_rentals_next_x_days[1],
+    rate_pressure: rate_pressure[0],
+    rate_pressure_description: rate_pressure[1],
     suggested_web_rate: suggested_web_rate[0],
     suggested_web_rate_description: suggested_web_rate[1],
     laddered_suggested_rate: laddered_suggested_rate[0],

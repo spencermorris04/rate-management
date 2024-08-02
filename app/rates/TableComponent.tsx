@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
+import styled, { createGlobalStyle } from 'styled-components';
 
 interface Grouping {
     level: string;
@@ -114,6 +114,51 @@ interface Grouping {
     children?: Grouping[];
   }
 
+  const GlobalStyle = createGlobalStyle`
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --header-bg: #f2f2f2;
+    --row-bg-0: rgba(230, 243, 255, 0.95);
+    --row-bg-1: rgba(255, 230, 230, 0.95);
+    --row-bg-2: rgba(230, 255, 230, 0.95);
+    --row-bg-3: rgba(255, 245, 230, 0.95);
+    --row-hover-0: rgba(204, 235, 255, 1);
+    --row-hover-1: rgba(255, 204, 204, 1);
+    --row-hover-2: rgba(204, 255, 204, 1);
+    --row-hover-3: rgba(255, 230, 204, 1);
+    --minimized-bg: #FAC898;
+    --minimized-color: #FAC898;
+    --border-color: #d9d9d9;
+    --pinned-bg: #d9d9d9;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #1a1a1a;
+      --text-color: #ffffff;
+      --header-bg: #2c2c2c;
+      --row-bg-0: rgba(25, 50, 75, 0.95);
+      --row-bg-1: rgba(75, 25, 25, 0.95);
+      --row-bg-2: rgba(25, 75, 25, 0.95);
+      --row-bg-3: rgba(75, 50, 25, 0.95);
+      --row-hover-0: rgba(35, 70, 105, 1);
+      --row-hover-1: rgba(105, 35, 35, 1);
+      --row-hover-2: rgba(35, 105, 35, 1);
+      --row-hover-3: rgba(105, 70, 35, 1);
+      --minimized-bg: #8B5E3C;
+      --minimized-color: #FAC898;
+      --border-color: #444444;
+      --pinned-bg: #3c3c3c;
+    }
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+`;
+
 const TableWrapper = styled.div`
   width: 80%;
   height: 90vh;
@@ -133,6 +178,7 @@ const TableWrapper = styled.div`
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(213, 184, 255, 0.18);
   opacity: 0.95;
+  background-color: var(--bg-color);
 `;
 
 const getPinnedLeftPosition = (pinnedIndex: number | undefined, isStickyLeft: boolean) => {
@@ -142,7 +188,6 @@ const getPinnedLeftPosition = (pinnedIndex: number | undefined, isStickyLeft: bo
 };
 
 const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?: boolean }>`
-  background-color: ${({ minimized }) => (minimized ? '#FAC898' : '#f2f2f2')};
   border: none;
   padding: 8px 2px;
   text-align: center;
@@ -153,9 +198,11 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
   position: sticky;
   top: 0;
   z-index: 20;
-  color: ${({ minimized }) => (minimized ? '#FAC898' : '#000000')};
-  border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')};
-  border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : '#d9d9d9')};
+
+  background-color: ${({ minimized }) => (minimized ? 'var(--minimized-bg)' : 'var(--header-bg)')};
+  color: ${({ minimized }) => (minimized ? 'var(--minimized-color)' : 'var(--text-color)')};
+  border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : 'var(--border-color)')};
+  border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : 'var(--border-color)')};
 
   ${({ isStickyLeft }) =>
     isStickyLeft &&
@@ -187,9 +234,7 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
   ${({ pinnedIndex }) =>
     pinnedIndex !== undefined &&
     `
-    left: ${200 + (pinnedIndex - 1) * 150}px;
-    z-index: 25;
-    background-color: #d9d9d9;
+    background-color: var(--pinned-bg);
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   `}
 
@@ -207,7 +252,7 @@ const Td = styled.td<{ level?: number, minimized?: boolean, pinnedIndex?: number
   padding: 18px 8px;
   padding-left: ${({ level }) => (level !== undefined ? `${level * 20 + 12}px` : '12px')};
 
-  ${({ pinnedIndex, isStickyLeft }) => `
+  ${({ pinnedIndex, isStickyLeft = false }) => `
     position: ${pinnedIndex !== undefined || isStickyLeft ? 'sticky' : 'static'};
     left: ${getPinnedLeftPosition(pinnedIndex, isStickyLeft)};
     z-index: ${isStickyLeft ? 10 : pinnedIndex !== undefined ? 5 : 'auto'};
@@ -220,8 +265,9 @@ const Td = styled.td<{ level?: number, minimized?: boolean, pinnedIndex?: number
 
   text-align: center;
   background-color: ${({ even }) => (even ? 'rgba(249, 249, 249, 0.3)' : 'rgba(255, 255, 255, 0.3)')};
-
-  ${({ isStickyLeft }) =>
+  color: var(--text-color);
+  
+  ${({ isStickyLeft = false }) =>
     isStickyLeft &&
     `
     position: sticky;
@@ -233,51 +279,33 @@ const Td = styled.td<{ level?: number, minimized?: boolean, pinnedIndex?: number
     text-align: left;
   `}
 
-  ${({ pinnedIndex, isStickyLeft }) =>
+  ${({ pinnedIndex, isStickyLeft = false }) =>
     (pinnedIndex !== undefined || isStickyLeft) &&
     `
     position: sticky;
-    ${isStickyLeft ? 'left: 0;' : `left: ${200 + pinnedIndex! * 150}px;`}
+    ${isStickyLeft ? 'left: 0;' : `left: ${200 + (pinnedIndex ?? 0) * 150}px;`}
     z-index: ${isStickyLeft ? 10 : 5};
     background-color: inherit;
     ${!isStickyLeft && 'box-shadow: 2px 0 5px rgba(0,0,0,0.1);'}
   `}
 
   .content {
-    opacity: ${({ minimized }) => (minimized ? 0 : 1)};
+    opacity: ${({ minimized = false }) => (minimized ? 0 : 1)};
     transition: opacity 0.3s;
-    display: ${({ minimized }) => (minimized ? 'none' : 'block')};
+    display: ${({ minimized = false }) => (minimized ? 'none' : 'block')};
   }
 `;
 
 const GroupRow = styled.tr<{ level: number; isExpanded: boolean }>`
-  background-color: ${({ level }) => {
-    const colors = [
-      'rgba(230, 243, 255, 0.95)', 
-      'rgba(255, 230, 230, 0.95)', 
-      'rgba(230, 255, 230, 0.95)', 
-      'rgba(255, 245, 230, 0.95)'
-    ];
-    return colors[level % colors.length];
-  }};
-  cursor: pointer;
-  transition: background-color 0.3s;
+  background-color: ${({ level }) => `var(--row-bg-${level % 4})`};
 
   &:hover {
-    background-color: ${({ level }) => {
-      const colors = [
-        'rgba(204, 235, 255, 1)', 
-        'rgba(255, 204, 204, 1)', 
-        'rgba(204, 255, 204, 1)', 
-        'rgba(255, 230, 204, 1)'
-      ];
-      return colors[level % colors.length];
-    }};
+    background-color: ${({ level }) => `var(--row-hover-${level % 4})`};
   }
 
   ${Td} {
     font-weight: bold;
-    background-color: inherit; /* Ensure the background color is inherited */
+    background-color: inherit;
   }
 `;
 
@@ -286,12 +314,13 @@ const Table = styled.table`
   border-spacing: 0;
   width: max-content;
   font-family: Arial, sans-serif;
-  background-color: white;
+  background-color: var(--bg-color);
   border-radius: 8px;
   overflow-x: auto;
   overflow-y: hidden;
   position: relative;
   cursor: default;
+
 `;
 
 const ExpandIcon = styled.span<{ isExpanded: boolean }>`
@@ -317,6 +346,17 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
   const [pinnedColumns, setPinnedColumns] = useState<string[]>([]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      // Force a re-render when the color scheme changes
+      setData([...data]);
+    };
+    
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, [data]);
 
   const columns = [
     { key: 'total_units', label: 'Total Units' },
@@ -362,6 +402,7 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
     { key: 'leasing_velocity_impact', label: 'Isolated Leasing Velocity Rate Pressure' },
     { key: 'projected_occupancy', label: 'Projected Occupancy' },
     { key: 'projected_occupancy_impact', label: 'Isolated Projected Occupancy Impact Rate Pressure' },
+    { key: 'rate_pressure', label: 'Suggested Rate Pressure' },
     { key: 'suggested_web_rate', label: 'Initially Suggested Web Rate' },
     { key: 'laddered_suggested_rate', label: 'Inital Size Ordering Rate Constraints' },
     { key: 'scaled_suggested_rate', label: 'Scaled Suggested Rate' },
@@ -515,6 +556,8 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
   };
 
   return (
+    <>
+    <GlobalStyle />
     <TableWrapper>
       {loading ? (
         <div>Loading...</div> // Placeholder for the loading state
@@ -527,6 +570,7 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
         </Table>
       )}
     </TableWrapper>
+    </>
   );
 };
 
