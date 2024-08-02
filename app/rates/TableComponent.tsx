@@ -191,29 +191,38 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
   border: none;
   padding: 8px 2px;
   text-align: center;
-  position: relative;
-  width: ${({ minimized }) => (minimized ? '40px' : '150px')};
-  min-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
-  max-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
   position: sticky;
   top: 0;
   z-index: 20;
+  width: ${({ minimized }) => (minimized ? '40px' : '150px')};
+  min-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
+  max-width: ${({ minimized }) => (minimized ? '40px' : '150px')};
 
   background-color: ${({ minimized }) => (minimized ? 'var(--minimized-bg)' : 'var(--header-bg)')};
   color: ${({ minimized }) => (minimized ? 'var(--minimized-color)' : 'var(--text-color)')};
   border-left: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : 'var(--border-color)')};
   border-right: 2px solid ${({ minimized }) => (minimized ? 'darkorange' : 'var(--border-color)')};
 
-  ${({ isStickyLeft }) =>
-    isStickyLeft &&
-    `
-    left: 0;
-    z-index: 21;
-    width: 200px;
-    min-width: 200px;
-    max-width: 200px;
-    font-size: 18px;
-  `}
+  ${({ isStickyLeft, pinnedIndex }) => {
+    if (isStickyLeft) {
+      return `
+        left: 0;
+        z-index: 21;
+        width: 200px;
+        min-width: 200px;
+        max-width: 200px;
+        font-size: 18px;
+      `;
+    } else if (pinnedIndex !== undefined) {
+      return `
+        left: ${200 + pinnedIndex * 150}px;
+        z-index: 21;
+        background-color: var(--pinned-bg);
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      `;
+    }
+    return '';
+  }}
 
   .text-content {
     opacity: ${({ minimized }) => (minimized ? 0 : 1)};
@@ -230,13 +239,6 @@ const Th = styled.th<{ minimized?: boolean; pinnedIndex?: number; isStickyLeft?:
     font-size: 14px;
     color: ${({ minimized }) => (minimized ? '#000' : 'transparent')};
   }
-
-  ${({ pinnedIndex }) =>
-    pinnedIndex !== undefined &&
-    `
-    background-color: var(--pinned-bg);
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  `}
 
   .pin-icon {
     position: absolute;
@@ -448,13 +450,14 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
           </Th>
           {sortedColumns.map((column, index) => {
             const isPinned = pinnedColumns.includes(column.key);
-            const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) + 1 : undefined;
+            const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) : undefined;
             const isMinimized = hiddenColumns.has(column.key);
             return (
               <Th
                 key={column.key}
                 minimized={isMinimized}
-                pinnedIndex={pinnedIndex}
+                pinnedIndex={isPinned ? pinnedIndex : undefined}
+                isStickyLeft={false}
                 onClick={() => toggleColumn(column.key)}
               >
                 <span className="text-content">
