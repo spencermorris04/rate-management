@@ -6,6 +6,10 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --bg-color-rgb: 255, 255, 255;
+  --text-color: #000000;
+  --header-bg: #f2f2f2;
+  --border-color: #d9d9d9;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +17,10 @@
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
+    --bg-color-rgb: 26, 26, 26;
+    --text-color: #ffffff;
+    --header-bg: #2c2c2c;
+    --border-color: #444444;
   }
 }
 

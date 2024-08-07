@@ -1,7 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
+import CompetitorModal from './CompetitorModal';
+
+interface CompetitorData {
+  storeName: string;
+  unit: string;
+  regularPrice: number;
+  onlinePrice: number;
+  group_key: string;
+}
 
 interface Grouping {
     level: string;
@@ -28,7 +37,7 @@ interface Grouping {
     otherwise_unrentable_count_description: string;
     available_units: number;
     available_units_description: string;
-    days_with_zero_availablity: string;
+    days_with_zero_availablity: number;
     days_with_zero_availablity_description: string;
     days_with_low_availability: number;
     days_with_low_availability_description: string;
@@ -111,6 +120,8 @@ interface Grouping {
     previous_bucket_laddered_rate_description: string;
     next_bucket_laddered_rate: number;
     next_bucket_laddered_rate_description: string;
+    group_keys: string[];
+    group_keys_description: string;
     children?: Grouping[];
   }
 
@@ -348,6 +359,71 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
   const [pinnedColumns, setPinnedColumns] = useState<string[]>([]);
+  const [selectedGroupKeys, setSelectedGroupKeys] = useState<string[]>([]);
+  const [selectedFacilityName, setSelectedFacilityName] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [competitorData, setCompetitorData] = useState<CompetitorData[]>([]);
+
+  useEffect(() => {
+    const fetchCompetitorData = async () => {
+      if (selectedGroupKeys.length > 0 && selectedFacilityName) {
+        console.log('Fetching competitor data for group keys:', selectedGroupKeys);
+        console.log('Facility name:', selectedFacilityName);
+        try {
+          const response = await fetch('/api/get-competitor-pricing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              group_keys: selectedGroupKeys,
+              facility_id: selectedFacilityName
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error('Failed to fetch competitor data');
+          }
+  
+          const data = await response.json();
+          setCompetitorData(data);
+          console.log('Competitor Data:', data);
+        } catch (error) {
+          console.error('Error fetching competitor data:', error);
+        }
+      }
+    };
+  
+    fetchCompetitorData();
+  }, [selectedGroupKeys, selectedFacilityName]);
+
+  const handleCompetitorCountClick = useCallback(async (group: Grouping) => {
+    if (group.group_keys && group.group_keys.length > 0) {
+      try {
+        const response = await fetch('/api/get-competitor-pricing', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            group_keys: group.group_keys,
+            facility_id: group.facility_name
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch competitor data');
+        }
+
+        const data = await response.json();
+        setCompetitorData(data);
+        setIsModalOpen(true);
+      } catch (error) {
+        console.error('Error fetching competitor data:', error);
+      }
+    }
+  }, []);
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -368,8 +444,9 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
     { key: 'reserved_count', label: 'Reserved Units' },
     { key: 'otherwise_unrentable_count', label: 'Otherwise Unrentable Units' },
     { key: 'available_units', label: 'Available Units' },
-    { key: 'days_with_zero_availablity', label: 'Days with No Availability' },
+    { key: 'days_with_zero_availability', label: 'Days with No Availability' },
     { key: 'days_with_low_availability', label: 'Days with Little Availability' },
+    { key: 'days_since_last_move_in', label: 'Days since Last Move In' },
     { key: 'long_term_customer_average', label: 'Long Term Customer Average' },
     { key: 'recent_period_average_move_in_rent', label: 'Recent Period Average Move-In Rent' },
     { key: 'average_standard_rate', label: 'Current Standard Rate' },
@@ -530,29 +607,30 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
             {groupName}
           </Td>
           {sortedColumns.map((column, index) => {
-            const isPinned = pinnedColumns.includes(column.key);
-            const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) : undefined;
-            const style = !isPinned ? {
-              width: `${getLongestWord(column.label).length * 10 + 4}px`,
-              minWidth: `${getLongestWord(column.label).length * 10 + 4}px`
-            } : {};
-            return (
-              <Td
-                key={column.key}
-                minimized={hiddenColumns.has(column.key)}
-                pinnedIndex={pinnedIndex}
-                isStickyLeft={false}
-                level={level}
-                title={group[`${column.key}_description` as keyof Grouping] as string}
-                style={style}
-              >
-                <span className="content">
-                  {group[column.key as keyof Grouping] as React.ReactNode}
-                </span>
-              </Td>
-            );
-          })}
-        </GroupRow>
+          const isPinned = pinnedColumns.includes(column.key);
+          const pinnedIndex = isPinned ? pinnedColumns.indexOf(column.key) : undefined;
+          const style = !isPinned ? {
+            width: `${getLongestWord(column.label).length * 10 + 4}px`,
+            minWidth: `${getLongestWord(column.label).length * 10 + 4}px`
+          } : {};
+          return (
+            <Td
+            key={column.key}
+            minimized={hiddenColumns.has(column.key)}
+            pinnedIndex={pinnedIndex}
+            isStickyLeft={false}
+            level={level}
+            title={group[`${column.key}_description` as keyof Grouping] as string}
+            style={style}
+            onClick={column.key === 'competitor_count' ? () => handleCompetitorCountClick(group) : undefined}
+          >
+            <span className="content">
+              {group[column.key as keyof Grouping] as React.ReactNode}
+            </span>
+          </Td>
+        );
+      })}
+    </GroupRow>
         {!isBaseRow && expanded[key] && group.children && group.children.map(child => renderRows(child, level + 1))}
       </React.Fragment>
     );
@@ -560,19 +638,24 @@ const TableComponent: React.FC<TableComponentProps> = ({ initialData, loading })
 
   return (
     <>
-    <GlobalStyle />
-    <TableWrapper>
-      {loading ? (
-        <div>Loading...</div> // Placeholder for the loading state
-      ) : (
-        <Table>
-          {renderHeader()}
-          <tbody>
-            {data.map(group => renderRows(group))}
-          </tbody>
-        </Table>
-      )}
-    </TableWrapper>
+      <GlobalStyle />
+      <TableWrapper>
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <Table>
+            {renderHeader()}
+            <tbody>
+              {data.map(group => renderRows(group))}
+            </tbody>
+          </Table>
+        )}
+      </TableWrapper>
+      <CompetitorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        data={competitorData}
+      />
     </>
   );
 };

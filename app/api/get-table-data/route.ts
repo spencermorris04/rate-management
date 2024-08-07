@@ -16,8 +16,9 @@ interface Grouping {
   reserved_count: [number, string];
   otherwise_unrentable_count: [number, string];
   available_units: [number, string];
-  days_with_zero_availablity: [string, string];
+  days_with_zero_availability: [number, string];
   days_with_low_availability: [number, string];
+  days_since_last_move_in: [number | null, string];
   long_term_customer_average: [number, string];
   recent_period_average_move_in_rent: [number, string];
   average_standard_rate: [number, string];
@@ -56,6 +57,7 @@ interface Grouping {
   suggested_web_rate: [number, string];
   laddered_suggested_rate: [number, string];
   scaled_suggested_rate: [number, string];
+  group_keys: [string[], string];
   children?: Grouping[];
 };
 
@@ -84,10 +86,12 @@ interface ProcessedGrouping {
   otherwise_unrentable_count_description: string;
   available_units: number;
   available_units_description: string;
-  days_with_zero_availablity: string;
-  days_with_zero_availablity_description: string;
+  days_with_zero_availability: number;
+  days_with_zero_availability_description: string;
   days_with_low_availability: number;
   days_with_low_availability_description: string;
+  days_since_last_move_in: number | null;
+  days_since_last_move_in_description: string;
   long_term_customer_average: number;
   long_term_customer_average_description: string;
   recent_period_average_move_in_rent: number;
@@ -164,6 +168,8 @@ interface ProcessedGrouping {
   laddered_suggested_rate_description: string;
   scaled_suggested_rate: number;
   scaled_suggested_rate_description: string;
+  group_keys: string[];
+  group_keys_description: string;
   children: ProcessedGrouping[];
 };
 
@@ -181,8 +187,9 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     reserved_count,
     otherwise_unrentable_count,
     available_units,
-    days_with_zero_availablity,
+    days_with_zero_availability,
     days_with_low_availability,
+    days_since_last_move_in,
     long_term_customer_average,
     recent_period_average_move_in_rent,
     average_standard_rate,
@@ -221,6 +228,7 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     suggested_web_rate,
     laddered_suggested_rate,
     scaled_suggested_rate,
+    group_keys,
     children,
   } = group;
 
@@ -249,10 +257,12 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     otherwise_unrentable_count_description: otherwise_unrentable_count[1],
     available_units: available_units[0],
     available_units_description: available_units[1],
-    days_with_zero_availablity: days_with_zero_availablity[0],
-    days_with_zero_availablity_description: days_with_zero_availablity[1],
+    days_with_zero_availability: days_with_zero_availability[0],
+    days_with_zero_availability_description: days_with_zero_availability[1],
     days_with_low_availability: days_with_low_availability[0],
     days_with_low_availability_description: days_with_low_availability[1],
+    days_since_last_move_in: days_since_last_move_in[0],
+    days_since_last_move_in_description: days_since_last_move_in[1],
     long_term_customer_average: long_term_customer_average[0],
     long_term_customer_average_description: long_term_customer_average[1],
     recent_period_average_move_in_rent: recent_period_average_move_in_rent[0],
@@ -329,8 +339,9 @@ const processGrouping = (group: Grouping, parentGroup: any = {}): ProcessedGroup
     laddered_suggested_rate_description: laddered_suggested_rate[1],
     scaled_suggested_rate: scaled_suggested_rate[0],
     scaled_suggested_rate_description: scaled_suggested_rate[1],
-    children: [],
-  };
+    group_keys: group_keys[0],
+    group_keys_description: group_keys[1],
+    children: [],  };
 
   if (children && children.length > 0) {
     currentGroup.children = children.map(child => processGrouping(child, currentGroup));
